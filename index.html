@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>リアルタイムHTMLプレビュー</title>
-    <link rel="manifest" href="manifest.json">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -90,6 +89,28 @@
         li:hover {
             background-color: #f0f0f0;
         }
+        .color-picker {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .color-option {
+            width: 30px;
+            height: 30px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        .image-preview {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .image-container {
+            position: relative;
+            margin: 5px;
+            border: 2px solid black;
+            padding: 5px;
+            border-radius: 5px;
+            background-color: white;
+        }
     </style>
 </head>
 <body>
@@ -120,14 +141,25 @@
                 <li onclick="copyToClipboard('&lt;b&gt;太文字&lt;/b&gt;')">&lt;b&gt; - 太文字</li>
                 <li onclick="copyToClipboard('&lt;i&gt;斜体&lt;/i&gt;')">&lt;i&gt; - 斜体</li>
                 <li onclick="copyToClipboard('&lt;u&gt;下線&lt;/u&gt;')">&lt;u&gt; - 下線</li>
-                <li onclick="copyToClipboard('&lt;img src=&quot;画像URL&quot; style=&quot;border-radius: 5px;&quot;&gt;')">&lt;img&gt; - 画像</li>
-                <li onclick="copyToClipboard('&lt;div&gt;コンテンツ&lt;/div&gt;')">&lt;div&gt; - コンテンツ</li>
                 <li onclick="copyToClipboard('&lt;span style=&quot;color: red;&quot;&gt;赤文字&lt;/span&gt;')">&lt;span&gt; - 文字色変更</li>
-                <li onclick="copyToClipboard('&lt;ul&gt;&lt;li&gt;項目1&lt;/li&gt;&lt;/ul&gt;')">&lt;ul&gt; - 無順序リスト</li>
-                <li onclick="copyToClipboard('&lt;ol&gt;&lt;li&gt;項目1&lt;/li&gt;&lt;/ol&gt;')">&lt;ol&gt; - 有順序リスト</li>
+                <li onclick="copyToClipboard('&lt;span style=&quot;font-size: 20px;&quot;&gt;大きな文字&lt;/span&gt;')">&lt;span&gt; - 文字サイズ指定</li>
+                <li onclick="copyToClipboard('&lt;img src=&quot;画像URL&quot; style=&quot;border-radius: 5px;&quot;&gt;')">&lt;img&gt; - 画像</li>
             </ul>
+            <h2>色コード一覧</h2>
+            <div class="color-picker">
+                <div class="color-option" style="background-color: red;" onclick="setColor('red')"></div>
+                <div class="color-option" style="background-color: green;" onclick="setColor('green')"></div>
+                <div class="color-option" style="background-color: blue;" onclick="setColor('blue')"></div>
+                <div class="color-option" style="background-color: yellow;" onclick="setColor('yellow')"></div>
+                <div class="color-option" style="background-color: orange;" onclick="setColor('orange')"></div>
+                <div class="color-option" style="background-color: purple;" onclick="setColor('purple')"></div>
+                <div class="color-option" style="background-color: black;" onclick="setColor('black')"></div>
+                <div class="color-option" style="background-color: white; border: 1px solid black;" onclick="setColor('white')"></div>
+            </div>
         </div>
     </div>
+
+    <div class="image-preview" id="imagePreviewContainer"></div>
 
     <script>
         const htmlInput = document.getElementById('htmlInput');
@@ -144,6 +176,9 @@
         const imageOverlay = document.getElementById('imageOverlay');
         const closeImageOverlay = document.getElementById('closeImageOverlay');
         const imageDetails = document.getElementById('imageDetails');
+        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+
+        let imageCount = 0;
 
         // リアルタイムプレビュー
         htmlInput.addEventListener('input', () => {
@@ -160,24 +195,42 @@
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const imgElement = `<img src="${e.target.result}" alt="Uploaded Image" style="max-width:100%; max-height:100%; border-radius: 5px;" onclick="showImageDetails('${file.name}', '${e.target.result}')">`;
-                    preview.innerHTML += imgElement;
+                    const imageContainer = document.createElement('div');
+                    imageContainer.className = 'image-container';
+                    imageContainer.innerHTML = `
+                        <input type="text" value="画像${++imageCount}" onchange="updateImageName(this)">
+                        <img src="${e.target.result}" alt="Uploaded Image" style="max-width:100%; max-height:100%; border-radius: 5px;" onclick="showImageDetails('${file.name}', '${e.target.result}', this)">
+                        <button class="delete-button" onclick="deleteImage(this)">削除</button>
+                    `;
+                    imagePreviewContainer.appendChild(imageContainer);
                 };
                 reader.readAsDataURL(file);
             }
         });
 
-        // 画像の詳細を表示
-        function showImageDetails(name, src) {
-            imageDetails.innerHTML = `<h3>${name}</h3><img src="${src}" style="max-width: 100%; border-radius: 5px;"><button class="delete-button" onclick="deleteImage(this)">削除</button>`;
+        // 画像詳細表示
+        function showImageDetails(name, src, imgElement) {
+            imageDetails.innerHTML = `
+                <p>画像名: <input type="text" value="${name}" onchange="updateImageName(this)"></p>
+                <img src="${src}" alt="${name}" style="max-width: 100%;">
+                <button class="delete-button" onclick="deleteImage(imgElement)">削除</button>
+            `;
             imageOverlay.style.display = 'flex';
         }
 
-        // 画像を削除
+        // 画像名の更新
+        function updateImageName(input) {
+            const container = input.parentElement;
+            const img = container.querySelector('img');
+            if (img) {
+                img.alt = input.value; // 画像名の更新
+            }
+        }
+
+        // 画像削除
         function deleteImage(button) {
-            const imgElement = button.closest('div');
-            imgElement.remove();
-            imageOverlay.style.display = 'none';
+            const container = button.parentElement;
+            imagePreviewContainer.removeChild(container);
         }
 
         // 再読み込みボタン
@@ -192,8 +245,10 @@
 
         // 拡大されたプレビューの枠外をクリックで戻す
         document.addEventListener('click', (event) => {
-            if (preview.classList.contains('expanded') && !preview.contains(event.target)) {
-                preview.classList.remove('expanded');
+            if (preview.classList.contains('expanded')) {
+                if (!preview.contains(event.target)) {
+                    preview.classList.remove('expanded');
+                }
             }
         });
 
@@ -202,7 +257,9 @@
             if (confirm("削除しますか？")) {
                 htmlInput.value = '';
                 preview.innerHTML = '';
-                imageInput.value = '';
+                imagePreviewContainer.innerHTML = ''; // 画像プレビューを空にする
+                imageInput.value = ''; // 画像入力をリセット
+                imageCount = 0; // カウントをリセット
             }
         });
 
@@ -216,7 +273,7 @@
             htmlTagsMenu.style.display = 'none';
         });
 
-        // HTMLタグコピー機能
+        // タグをコピーする関数
         function copyToClipboard(tag) {
             navigator.clipboard.writeText(tag).then(() => {
                 alert("コピーしました: " + tag);
@@ -227,12 +284,22 @@
         pasteHtmlBtn.addEventListener('click', async () => {
             try {
                 const text = await navigator.clipboard.readText();
-                htmlInput.value += text;
-                preview.innerHTML = htmlInput.value;
+                htmlInput.value += text; // 入力エリアにペースト
+                preview.innerHTML = htmlInput.value; // プレビューを更新
             } catch (err) {
                 alert("ペーストできませんでした: " + err);
             }
         });
+
+        // 色変更機能
+        function setColor(color) {
+            const selectedText = window.getSelection().toString();
+            if (selectedText) {
+                const coloredText = `<span style="color: ${color};">${selectedText}</span>`;
+                htmlInput.value += coloredText; // 入力エリアに追加
+                preview.innerHTML = htmlInput.value; // プレビューを更新
+            }
+        }
 
         // 画像オーバーレイを閉じる
         closeImageOverlay.addEventListener('click', () => {
@@ -241,3 +308,4 @@
     </script>
 </body>
 </html>
+
