@@ -102,6 +102,7 @@
                 <li onclick="copyToClipboard('&lt;ol&gt;&lt;li&gt;項目1&lt;/li&gt;&lt;/ol&gt;')">&lt;ol&gt; - 有順序リスト</li>
                 <li onclick="copyToClipboard('&lt;form&gt;&lt;/form&gt;')">&lt;form&gt; - フォーム</li>
                 <li onclick="copyToClipboard('&lt;button&gt;ボタン&lt;/button&gt;')">&lt;button&gt; - ボタン</li>
+                <li onclick="copyToClipboard('&lt;script&gt;setTimeout(function() { alert(&quot;5秒後に実行されました&quot;); }, 5000);&lt;/script&gt;')">&lt;script&gt; - 5秒後に実行</li>
             </ul>
         </div>
     </div>
@@ -139,11 +140,12 @@
         });
 
         // プレビューをタップで戻す
-        preview.addEventListener('click', () => {
-            preview.style.position = '';
-            preview.style.width = '85%';
-            preview.style.height = '480px';
-            preview.style.zIndex = '';
+        preview.addEventListener('click', (e) => {
+            if (preview.style.position === 'fixed') {
+                if (e.target === preview) {
+                    resetPreview();
+                }
+            }
         });
 
         // 全て削除ボタン
@@ -168,7 +170,14 @@
                 alert("コピーしました: " + tag);
             });
         }
+
+        // プレビューを元に戻す
+        function resetPreview() {
+            preview.style.position = '';
+            preview.style.width = '85%';
+            preview.style.height = '480px';
+            preview.style.zIndex = '';
+        }
     </script>
 </body>
 </html>
-
