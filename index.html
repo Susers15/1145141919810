@@ -143,8 +143,13 @@
                 <li onclick="copyToClipboard('&lt;u&gt;下線&lt;/u&gt;')">&lt;u&gt; - 下線</li>
                 <li onclick="copyToClipboard('&lt;span style=&quot;color: red;&quot;&gt;赤文字&lt;/span&gt;')">&lt;span&gt; - 文字色変更</li>
                 <li onclick="copyToClipboard('&lt;span style=&quot;font-size: 20px;&quot;&gt;大きな文字&lt;/span&gt;')">&lt;span&gt; - 文字サイズ指定</li>
+                <li onclick="copyToClipboard('&lt;span style=&quot;text-shadow: 2px 2px 5px #888;&quot;&gt;影付き文字&lt;/span&gt;')">&lt;span&gt; - 影付き文字</li>
+                <li onclick="copyToClipboard('&lt;div style=&quot;background-color: yellow;&quot;&gt;背景色付き&lt;/div&gt;')">&lt;div&gt; - 背景色付き</li>
                 <li onclick="copyToClipboard('&lt;img src=&quot;画像URL&quot; style=&quot;border-radius: 5px;&quot;&gt;')">&lt;img&gt; - 画像</li>
+                <li onclick="copyToClipboard('&lt;canvas id=&quot;pinballCanvas&quot; width=&quot;400&quot; height=&quot;600&quot;&gt;&lt;/canvas&gt;')">&lt;canvas&gt; - ピンボールゲーム</li>
             </ul>
+            <h2>ピンボールゲームのサンプルコード</h2>
+            <pre onclick="copyToClipboard('const canvas = document.getElementById(&quot;pinballCanvas&quot;);\nconst ctx = canvas.getContext(&quot;2d&quot;);\nlet ballX = 200, ballY = 300, ballRadius = 10;\nlet ballSpeedX = 2, ballSpeedY = -2;\n\nfunction drawBall() {\n    ctx.beginPath();\n    ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);\n    ctx.fillStyle = &quot;black&quot;;\n    ctx.fill();\n    ctx.closePath();\n}\n\nfunction update() {\n    ballX += ballSpeedX;\n    ballY += ballSpeedY;\n    if (ballX + ballRadius > canvas.width || ballX - ballRadius < 0) ballSpeedX = -ballSpeedX;\n    if (ballY + ballRadius > canvas.height || ballY - ballRadius < 0) ballSpeedY = -ballSpeedY;\n}\n\nfunction draw() {\n    ctx.clearRect(0, 0, canvas.width, canvas.height);\n    drawBall();\n    update();\n    requestAnimationFrame(draw);\n}\ndraw();')">ピンボールサンプル</pre>
             <h2>色コード一覧</h2>
             <div class="color-picker">
                 <div class="color-option" style="background-color: red;" onclick="setColor('red')"></div>
@@ -158,8 +163,6 @@
             </div>
         </div>
     </div>
-
-    <div class="image-preview" id="imagePreviewContainer"></div>
 
     <script>
         const htmlInput = document.getElementById('htmlInput');
@@ -176,13 +179,13 @@
         const imageOverlay = document.getElementById('imageOverlay');
         const closeImageOverlay = document.getElementById('closeImageOverlay');
         const imageDetails = document.getElementById('imageDetails');
-        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
-
-        let imageCount = 0;
+        const imagePreviewContainer = document.createElement('div');
+        imagePreviewContainer.classList.add('image-preview');
+        document.body.appendChild(imagePreviewContainer);
 
         // リアルタイムプレビュー
         htmlInput.addEventListener('input', () => {
-            preview.innerHTML = htmlInput.value;
+            preview.innerHTML = htmlInput.value; 
         });
 
         // 画像を追加ボタン
@@ -195,11 +198,13 @@
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
+                    const imgName = prompt("画像名を入力してください");
+                    const imgElement = `<img src="${e.target.result}" alt="${imgName}" style="max-width:100%; max-height:100%; border-radius: 5px;">`;
                     const imageContainer = document.createElement('div');
-                    imageContainer.className = 'image-container';
+                    imageContainer.classList.add('image-container');
                     imageContainer.innerHTML = `
-                        <input type="text" value="画像${++imageCount}" onchange="updateImageName(this)">
-                        <img src="${e.target.result}" alt="Uploaded Image" style="max-width:100%; max-height:100%; border-radius: 5px;" onclick="showImageDetails('${file.name}', '${e.target.result}', this)">
+                        <p>画像名: <input type="text" value="${imgName}" onchange="updateImageName(this)"></p>
+                        ${imgElement}
                         <button class="delete-button" onclick="deleteImage(this)">削除</button>
                     `;
                     imagePreviewContainer.appendChild(imageContainer);
@@ -223,7 +228,7 @@
             const container = input.parentElement;
             const img = container.querySelector('img');
             if (img) {
-                img.alt = input.value; // 画像名の更新
+                img.alt = input.value; 
             }
         }
 
@@ -257,9 +262,8 @@
             if (confirm("削除しますか？")) {
                 htmlInput.value = '';
                 preview.innerHTML = '';
-                imagePreviewContainer.innerHTML = ''; // 画像プレビューを空にする
-                imageInput.value = ''; // 画像入力をリセット
-                imageCount = 0; // カウントをリセット
+                imagePreviewContainer.innerHTML = ''; 
+                imageInput.value = ''; 
             }
         });
 
@@ -284,8 +288,8 @@
         pasteHtmlBtn.addEventListener('click', async () => {
             try {
                 const text = await navigator.clipboard.readText();
-                htmlInput.value += text; // 入力エリアにペースト
-                preview.innerHTML = htmlInput.value; // プレビューを更新
+                htmlInput.value += text; 
+                preview.innerHTML = htmlInput.value; 
             } catch (err) {
                 alert("ペーストできませんでした: " + err);
             }
@@ -296,8 +300,8 @@
             const selectedText = window.getSelection().toString();
             if (selectedText) {
                 const coloredText = `<span style="color: ${color};">${selectedText}</span>`;
-                htmlInput.value += coloredText; // 入力エリアに追加
-                preview.innerHTML = htmlInput.value; // プレビューを更新
+                htmlInput.value += coloredText; 
+                preview.innerHTML = htmlInput.value; 
             }
         }
 
@@ -308,4 +312,3 @@
     </script>
 </body>
 </html>
-
