@@ -50,7 +50,7 @@
         }
         button {
             margin: 5px;
-            padding: 10px;
+            padding: 12px; /* ボタンサイズを少し大きく */
             border: none;
             border-radius: 5px;
             cursor: pointer;
@@ -77,7 +77,7 @@
     </style>
 </head>
 <body>
-    <h1>プレビュー</h1>
+    <h1>リアルタイムHTMLプレビュー</h1>
     <textarea id="htmlInput" rows="10" style="width: 100%;"></textarea>
     <input type="file" id="imageInput" accept="image/*" style="display: none;" />
     <button class="normal-button" id="addImageBtn">画像を追加</button>
@@ -96,8 +96,9 @@
                 <li onclick="copyToClipboard('&lt;b&gt;太文字&lt;/b&gt;')">&lt;b&gt; - 太文字</li>
                 <li onclick="copyToClipboard('&lt;i&gt;斜体&lt;/i&gt;')">&lt;i&gt; - 斜体</li>
                 <li onclick="copyToClipboard('&lt;u&gt;下線&lt;/u&gt;')">&lt;u&gt; - 下線</li>
-                <li onclick="copyToClipboard('&lt;div style=&quot;background-color: red;&quot;&gt;赤背景の区分&lt;/div&gt;')">&lt;div&gt; - 背景色付き区分</li>
-                <li onclick="copyToClipboard('&lt;span style=&quot;color: blue;&quot;&gt;青文字&lt;/span&gt;')">&lt;span&gt; - 特定色の文字</li>
+                <li onclick="copyToClipboard('&lt;div style=&quot;background-image: url(&quot;background.jpg&quot;);&quot;&gt;背景画像付き区分&lt;/div&gt;')">&lt;div&gt; - 背景画像</li>
+                <li onclick="copyToClipboard('&lt;span style=&quot;color: red;&quot;&gt;赤文字&lt;/span&gt;')">&lt;span&gt; - 文字色変更</li>
+                <li onclick="copyToClipboard('&lt;span style=&quot;text-shadow: 2px 2px 4px #000;&quot;&gt;影付き文字&lt;/span&gt;')">&lt;span&gt; - 影付き文字</li>
                 <li onclick="copyToClipboard('&lt;img src=&quot;画像URL&quot;&gt;')">&lt;img&gt; - 画像</li>
                 <li onclick="copyToClipboard('&lt;canvas&gt;&lt;/canvas&gt;')">&lt;canvas&gt; - 描画領域</li>
                 <li onclick="copyToClipboard('&lt;svg&gt;&lt;/svg&gt;')">&lt;svg&gt; - SVG画像</li>
@@ -156,27 +157,29 @@
             preview.style.position = 'fixed';
             preview.style.top = '0';
             preview.style.left = '0';
-            preview.style.width = '100vw';
-            preview.style.height = '100vh';
-            preview.style.maxWidth = '100%';
-            preview.style.maxHeight = '100%';
+            preview.style.width = '80%'; // 拡大中のサイズ
+            preview.style.height = 'calc(80% * 9 / 16)';
             preview.style.transform = 'scale(1)';
             preview.style.zIndex = '1000';
             preview.style.backgroundColor = 'white';
+            preview.style.overflow = 'scroll'; // スクロール可能に
         });
 
-        // プレビューをタップで戻す
-        preview.addEventListener('click', (e) => {
-            if (preview.style.position === 'fixed') {
-                if (e.target === preview) {
-                    resetPreview();
-                }
+        // 拡大されたプレビューの枠外をクリックで戻す
+        document.addEventListener('click', (event) => {
+            if (event.target === preview) return; // プレビュー内のクリックを無視
+            if (preview.style.zIndex === '1000') {
+                preview.style.position = '';
+                preview.style.width = '80vw'; // 元のサイズに戻す
+                preview.style.height = 'calc(80vw * 9 / 16)';
+                preview.style.zIndex = '';
+                preview.style.backgroundColor = 'white'; // 背景色を元に戻す
             }
         });
 
         // 全て削除ボタン
         deleteBtn.addEventListener('click', () => {
-            if (confirm("本当に全て削除しますか？")) {
+            if (confirm("削除しますか？")) {
                 htmlInput.value = '';
                 preview.innerHTML = ''; // プレビューを空にする
                 imageInput.value = ''; // 画像入力をリセット
@@ -199,17 +202,6 @@
                 alert("コピーしました: " + tag);
             });
         }
-
-        // プレビューを元に戻す
-        function resetPreview() {
-            preview.style.position = '';
-            preview.style.width = '80vw'; // 元のサイズに戻す
-            preview.style.height = 'calc(80vw * 9 / 16)'; // 元の比率に戻す
-            preview.style.zIndex = '';
-            preview.style.backgroundColor = 'white'; // 背景色を元に戻す
-        }
     </script>
 </body>
 </html>
-
-
