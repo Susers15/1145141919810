@@ -12,14 +12,16 @@
             padding: 20px;
         }
         .preview {
-            width: 85%;
-            height: 530px; /* 高さを50px追加 */
+            width: 80vw; /* スマートフォンに最適化 */
+            height: calc(80vw * 9 / 16); /* 16:9比率 */
+            max-height: 80vh; /* 最大高さ80vh */
             margin: 20px auto;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
             background: white;
             transition: transform 0.3s, opacity 0.3s;
-            padding: 10px; /* 内側にパディングを追加 */
+            padding: 10px;
+            overflow: auto; /* スクロール可能に */
         }
         .html-tags-menu {
             position: fixed;
@@ -77,7 +79,9 @@
 <body>
     <h1>リアルタイムHTMLプレビュー</h1>
     <textarea id="htmlInput" rows="10" style="width: 100%;"></textarea>
-    <div class="preview" id="preview">プレビューエリア</div> <!-- デフォルトテキスト追加 -->
+    <input type="file" id="imageInput" accept="image/*" style="display: none;" />
+    <button class="normal-button" id="addImageBtn">画像を追加</button>
+    <div class="preview" id="preview"></div>
     
     <button class="normal-button" id="reloadBtn">再読み込み</button>
     <button class="normal-button" id="expandBtn">拡大</button>
@@ -117,15 +121,34 @@
         const htmlTagsBtn = document.getElementById('htmlTagsBtn');
         const htmlTagsMenu = document.getElementById('htmlTagsMenu');
         const closeHtmlTagsBtn = document.getElementById('closeHtmlTags');
+        const addImageBtn = document.getElementById('addImageBtn');
+        const imageInput = document.getElementById('imageInput');
 
         // リアルタイムプレビュー
         htmlInput.addEventListener('input', () => {
-            preview.innerHTML = htmlInput.value || "プレビューエリア"; // 何も入力されていない場合のデフォルトテキスト
+            preview.innerHTML = htmlInput.value; // 入力に応じてプレビューを更新
+        });
+
+        // 画像を追加ボタン
+        addImageBtn.addEventListener('click', () => {
+            imageInput.click();
+        });
+
+        imageInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imgElement = `<img src="${e.target.result}" alt="Uploaded Image" style="max-width:100%; max-height:100%;">`;
+                    preview.innerHTML += imgElement; // プレビューに画像を追加
+                };
+                reader.readAsDataURL(file);
+            }
         });
 
         // 再読み込みボタン
         reloadBtn.addEventListener('click', () => {
-            preview.innerHTML = htmlInput.value || "プレビューエリア";
+            preview.innerHTML = htmlInput.value;
         });
 
         // 拡大ボタン
@@ -155,7 +178,8 @@
         deleteBtn.addEventListener('click', () => {
             if (confirm("本当に全て削除しますか？")) {
                 htmlInput.value = '';
-                preview.innerHTML = 'プレビューエリア'; // デフォルトテキスト
+                preview.innerHTML = ''; // プレビューを空にする
+                imageInput.value = ''; // 画像入力をリセット
             }
         });
 
@@ -179,12 +203,13 @@
         // プレビューを元に戻す
         function resetPreview() {
             preview.style.position = '';
-            preview.style.width = '85%';
-            preview.style.height = '530px'; // 元の高さに戻す
+            preview.style.width = '80vw'; // 元のサイズに戻す
+            preview.style.height = 'calc(80vw * 9 / 16)'; // 元の比率に戻す
             preview.style.zIndex = '';
             preview.style.backgroundColor = 'white'; // 背景色を元に戻す
         }
     </script>
 </body>
 </html>
+
 
