@@ -13,12 +13,13 @@
         }
         .preview {
             width: 85%;
-            height: 480px;
+            height: 530px; /* 高さを50px追加 */
             margin: 20px auto;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
             background: white;
             transition: transform 0.3s, opacity 0.3s;
+            padding: 10px; /* 内側にパディングを追加 */
         }
         .html-tags-menu {
             position: fixed;
@@ -76,7 +77,7 @@
 <body>
     <h1>リアルタイムHTMLプレビュー</h1>
     <textarea id="htmlInput" rows="10" style="width: 100%;"></textarea>
-    <div class="preview" id="preview"></div>
+    <div class="preview" id="preview">プレビューエリア</div> <!-- デフォルトテキスト追加 -->
     
     <button class="normal-button" id="reloadBtn">再読み込み</button>
     <button class="normal-button" id="expandBtn">拡大</button>
@@ -119,24 +120,26 @@
 
         // リアルタイムプレビュー
         htmlInput.addEventListener('input', () => {
-            preview.innerHTML = htmlInput.value;
+            preview.innerHTML = htmlInput.value || "プレビューエリア"; // 何も入力されていない場合のデフォルトテキスト
         });
 
         // 再読み込みボタン
         reloadBtn.addEventListener('click', () => {
-            preview.innerHTML = htmlInput.value;
+            preview.innerHTML = htmlInput.value || "プレビューエリア";
         });
 
         // 拡大ボタン
         expandBtn.addEventListener('click', () => {
             preview.style.position = 'fixed';
-            preview.style.top = '50%';
-            preview.style.left = '50%';
-            preview.style.transform = 'translate(-50%, -50%) scale(1)';
-            preview.style.width = '80vw';
-            preview.style.height = 'auto';
-            preview.style.maxHeight = '80vh';
+            preview.style.top = '0';
+            preview.style.left = '0';
+            preview.style.width = '100vw';
+            preview.style.height = '100vh';
+            preview.style.maxWidth = '100%';
+            preview.style.maxHeight = '100%';
+            preview.style.transform = 'scale(1)';
             preview.style.zIndex = '1000';
+            preview.style.backgroundColor = 'white';
         });
 
         // プレビューをタップで戻す
@@ -150,8 +153,10 @@
 
         // 全て削除ボタン
         deleteBtn.addEventListener('click', () => {
-            htmlInput.value = '';
-            preview.innerHTML = '';
+            if (confirm("本当に全て削除しますか？")) {
+                htmlInput.value = '';
+                preview.innerHTML = 'プレビューエリア'; // デフォルトテキスト
+            }
         });
 
         // HTMLタグ一覧ボタン
@@ -175,9 +180,11 @@
         function resetPreview() {
             preview.style.position = '';
             preview.style.width = '85%';
-            preview.style.height = '480px';
+            preview.style.height = '530px'; // 元の高さに戻す
             preview.style.zIndex = '';
+            preview.style.backgroundColor = 'white'; // 背景色を元に戻す
         }
     </script>
 </body>
 </html>
+
