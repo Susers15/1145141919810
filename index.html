@@ -11,72 +11,58 @@
             background-color: #f0f0f0;
             padding: 20px;
         }
-        #htmlInput {
-            width: 100%;
-            min-height: 100px; /* Minimum height */
-            resize: vertical; /* Allow vertical resizing */
-        }
         .preview {
-            width: 80vw; /* スマートフォンに最適化 */
-            height: calc(80vw * 9 / 16); /* 16:9比率 */
-            max-height: 80vh; /* 最大高さ80vh */
+            width: 80vw; 
+            height: calc(80vw * 9 / 16); 
+            max-height: 80vh; 
             margin: 20px auto;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
             background: white;
-            transition: transform 0.3s, opacity 0.3s;
             padding: 10px;
-            overflow: auto; /* スクロール可能に */
+            overflow: auto; 
             position: relative;
-            resize: both; /* Allow both horizontal and vertical resizing */
-            min-width: 320px; /* Minimum width */
-            min-height: 180px; /* Minimum height */
+            transition: transform 0.3s;
         }
-        .image-list {
-            list-style: none;
-            padding: 0;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
+        .preview.expanded {
+            position: fixed;
+            top: 10%;
+            left: 10%;
+            width: 80%;
+            height: calc(80% * 9 / 16);
+            z-index: 1000;
+            background-color: white;
         }
-        .image-item {
-            position: relative;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            overflow: hidden;
-            width: 100px; /* Thumbnail size */
-            height: 100px; /* Thumbnail size */
-        }
-        .image-item img {
-            max-width: 100%;
-            max-height: 100%;
-            border-radius: 5px;
-        }
-        .edit-modal {
+        .overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
-            overflow-y: auto;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .html-tags-menu {
+            background-color: rgba(0, 0, 0, 0.5);
             padding: 20px;
+            border-radius: 5px;
             display: none;
             z-index: 1000;
         }
-        .edit-modal-content {
+        .html-tags-content {
             background-color: white;
             padding: 20px;
             border-radius: 5px;
-            position: relative;
         }
-        .close-edit-modal {
+        .close-html-tags {
             float: right;
             border: none;
             background: transparent;
             color: black;
             font-size: 20px;
-            border-radius: 5px;
         }
         button {
             margin: 5px;
@@ -93,39 +79,39 @@
             background-color: black;
             color: white;
         }
-        .expanded-image {
-            position: fixed;
-            top: 20%;
-            left: 50%;
-            transform: translate(-50%, -20%);
-            border: 12px solid #f0f0f0;
-            border-radius: 5px;
-            z-index: 1001;
-            display: none;
+        ul {
+            list-style: none;
+            padding: 0;
         }
-        .expanded-image img {
-            max-width: 100%;
-            max-height: 100%;
-            border-radius: 5px;
+        li {
+            padding: 5px;
+            cursor: pointer;
+        }
+        li:hover {
+            background-color: #f0f0f0;
         }
     </style>
 </head>
 <body>
-    <h1>プレビュー</h1>
-    <textarea id="htmlInput" rows="10"></textarea>
+    <h1>リアルタイムHTMLプレビュー</h1>
+    <textarea id="htmlInput" rows="10" style="width: 100%;"></textarea>
     <input type="file" id="imageInput" accept="image/*" style="display: none;" />
     <button class="normal-button" id="addImageBtn">画像を追加</button>
-    <button class="normal-button" id="pasteHtmlBtn" style="margin-left: 12px;">ペースト</button>
+    <button class="normal-button" id="pasteHtmlBtn">ペースト</button>
     <div class="preview" id="preview"></div>
     
-    <h2>画像一覧</h2>
-    <ul class="image-list" id="imageList"></ul>
-
     <button class="normal-button" id="reloadBtn">再読み込み</button>
     <button class="normal-button" id="expandBtn">拡大</button>
     <button class="delete-button" id="deleteBtn">全て削除</button>
     <button class="normal-button" id="htmlTagsBtn">HTMLタグ一覧</button>
-    
+
+    <div class="overlay" id="imageOverlay">
+        <div>
+            <button class="close-html-tags" id="closeImageOverlay">×</button>
+            <div id="imageDetails"></div>
+        </div>
+    </div>
+
     <div class="html-tags-menu" id="htmlTagsMenu">
         <div class="html-tags-content">
             <button class="close-html-tags" id="closeHtmlTags">×</button>
@@ -134,52 +120,18 @@
                 <li onclick="copyToClipboard('&lt;b&gt;太文字&lt;/b&gt;')">&lt;b&gt; - 太文字</li>
                 <li onclick="copyToClipboard('&lt;i&gt;斜体&lt;/i&gt;')">&lt;i&gt; - 斜体</li>
                 <li onclick="copyToClipboard('&lt;u&gt;下線&lt;/u&gt;')">&lt;u&gt; - 下線</li>
-                <li onclick="copyToClipboard('&lt;div style=&quot;background-image: url(&quot;background.jpg&quot;);&quot;&gt;背景画像付き区分&lt;/div&gt;')">&lt;div&gt; - 背景画像</li>
+                <li onclick="copyToClipboard('&lt;img src=&quot;画像URL&quot; style=&quot;border-radius: 5px;&quot;&gt;')">&lt;img&gt; - 画像</li>
+                <li onclick="copyToClipboard('&lt;div&gt;コンテンツ&lt;/div&gt;')">&lt;div&gt; - コンテンツ</li>
                 <li onclick="copyToClipboard('&lt;span style=&quot;color: red;&quot;&gt;赤文字&lt;/span&gt;')">&lt;span&gt; - 文字色変更</li>
-                <li onclick="copyToClipboard('&lt;span style=&quot;text-shadow: 2px 2px 4px #000;&quot;&gt;影付き文字&lt;/span&gt;')">&lt;span&gt; - 影付き文字</li>
-                <li onclick="copyToClipboard('&lt;img src=&quot;画像URL&quot; style=&quot;border-radius: 5px;&quot;&gt;')">&lt;img&gt; - 画像 (角を丸める)</li>
-                <li onclick="copyToClipboard('&lt;div style=&quot;background-image: url(&quot;壁紙URL&quot;); height: 100%;&quot;&gt;&lt;/div&gt;')">&lt;div&gt; - 壁紙</li>
-                <li onclick="copyToClipboard('&lt;canvas&gt;&lt;/canvas&gt;')">&lt;canvas&gt; - 描画領域</li>
-                <li onclick="copyToClipboard('&lt;svg&gt;&lt;/svg&gt;')">&lt;svg&gt; - SVG画像</li>
-                <li onclick="copyToClipboard('&lt;video&gt;&lt;/video&gt;')">&lt;video&gt; - 動画</li>
-                <li onclick="copyToClipboard('&lt;audio&gt;&lt;/audio&gt;')">&lt;audio&gt; - 音声</li>
                 <li onclick="copyToClipboard('&lt;ul&gt;&lt;li&gt;項目1&lt;/li&gt;&lt;/ul&gt;')">&lt;ul&gt; - 無順序リスト</li>
                 <li onclick="copyToClipboard('&lt;ol&gt;&lt;li&gt;項目1&lt;/li&gt;&lt;/ol&gt;')">&lt;ol&gt; - 有順序リスト</li>
-                <li onclick="copyToClipboard('&lt;form&gt;&lt;/form&gt;')">&lt;form&gt; - フォーム</li>
-                <li onclick="copyToClipboard('&lt;button&gt;ボタン&lt;/button&gt;')">&lt;button&gt; - ボタン</li>
-                <li onclick="copyToClipboard('&lt;script&gt;setTimeout(function() { alert(&quot;5秒後に実行されました&quot;); }, 5000);&lt;/script&gt;')">&lt;script&gt; - 5秒後に実行</li>
             </ul>
         </div>
-    </div>
-
-    <!-- Edit Modal -->
-    <div class="edit-modal" id="editModal">
-        <div class="edit-modal-content">
-            <button class="close-edit-modal" id="closeEditModal">×</button>
-            <h2>画像編集</h2>
-            <label for="imageName">画像名:</label>
-            <input type="text" id="imageName" style="width: 100%;" />
-            <button class="normal-button" id="saveImageNameBtn">名前変更</button>
-            <button class="delete-button" id="deleteImageBtn">削除</button>
-            <label for="imageExtension">拡張子:</label>
-            <select id="imageExtension">
-                <option value=".jpg">.jpg</option>
-                <option value=".png">.png</option>
-                <option value=".gif">.gif</option>
-            </select>
-        </div>
-    </div>
-
-    <div class="expanded-image" id="expandedImage">
-        <button class="close-edit-modal" id="closeExpandedImage">×</button>
-        <img id="expandedImageContent" alt="Expanded Image" />
-        <button class="normal-button" id="editExpandedImageBtn">編集</button>
     </div>
 
     <script>
         const htmlInput = document.getElementById('htmlInput');
         const preview = document.getElementById('preview');
-        const imageList = document.getElementById('imageList');
         const reloadBtn = document.getElementById('reloadBtn');
         const expandBtn = document.getElementById('expandBtn');
         const deleteBtn = document.getElementById('deleteBtn');
@@ -189,22 +141,13 @@
         const addImageBtn = document.getElementById('addImageBtn');
         const imageInput = document.getElementById('imageInput');
         const pasteHtmlBtn = document.getElementById('pasteHtmlBtn');
-        const editModal = document.getElementById('editModal');
-        const closeEditModalBtn = document.getElementById('closeEditModal');
-        const imageNameInput = document.getElementById('imageName');
-        const saveImageNameBtn = document.getElementById('saveImageNameBtn');
-        const deleteImageBtn = document.getElementById('deleteImageBtn');
-        const expandedImage = document.getElementById('expandedImage');
-        const expandedImageContent = document.getElementById('expandedImageContent');
-        const closeExpandedImageBtn = document.getElementById('closeExpandedImage');
-        const editExpandedImageBtn = document.getElementById('editExpandedImageBtn');
-        const imageExtensionSelect = document.getElementById('imageExtension');
-
-        let currentImageElement;
+        const imageOverlay = document.getElementById('imageOverlay');
+        const closeImageOverlay = document.getElementById('closeImageOverlay');
+        const imageDetails = document.getElementById('imageDetails');
 
         // リアルタイムプレビュー
         htmlInput.addEventListener('input', () => {
-            preview.innerHTML = htmlInput.value; // 入力に応じてプレビューを更新
+            preview.innerHTML = htmlInput.value;
         });
 
         // 画像を追加ボタン
@@ -217,47 +160,25 @@
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const imgWrapper = document.createElement('div');
-                    imgWrapper.classList.add('image-item');
-
-                    const imgElement = document.createElement('img');
-                    imgElement.src = e.target.result;
-                    imgElement.alt = file.name;
-
-                    const editButton = document.createElement('button');
-                    editButton.className = 'normal-button';
-                    editButton.textContent = '編集';
-                    editButton.onclick = () => {
-                        currentImageElement = imgElement;
-                        imageNameInput.value = file.name; // Set the current image name
-                        imageExtensionSelect.value = file.name.split('.').pop(); // Set the current extension
-                        editModal.style.display = 'block'; // Open edit modal
-                    };
-
-                    imgWrapper.appendChild(imgElement);
-                    imgWrapper.appendChild(editButton);
-                    imageList.appendChild(imgWrapper);
-
-                    // Create the image tag in HTML input
-                    const imgTag = `<img src="${e.target.result}" alt="${file.name}" />`;
-                    htmlInput.value += imgTag; // Append the image tag to the HTML input
+                    const imgElement = `<img src="${e.target.result}" alt="Uploaded Image" style="max-width:100%; max-height:100%; border-radius: 5px;" onclick="showImageDetails('${file.name}', '${e.target.result}')">`;
+                    preview.innerHTML += imgElement;
                 };
                 reader.readAsDataURL(file);
             }
         });
 
-        // 画像を選択した時の拡大表示
-        imageList.addEventListener('click', (event) => {
-            if (event.target.tagName === 'IMG') {
-                expandedImageContent.src = event.target.src; // Set the expanded image
-                expandedImage.style.display = 'block'; // Show expanded image
-            }
-        });
+        // 画像の詳細を表示
+        function showImageDetails(name, src) {
+            imageDetails.innerHTML = `<h3>${name}</h3><img src="${src}" style="max-width: 100%; border-radius: 5px;"><button class="delete-button" onclick="deleteImage(this)">削除</button>`;
+            imageOverlay.style.display = 'flex';
+        }
 
-        // 拡大画像の閉じるボタン
-        closeExpandedImageBtn.addEventListener('click', () => {
-            expandedImage.style.display = 'none'; // Close expanded image
-        });
+        // 画像を削除
+        function deleteImage(button) {
+            const imgElement = button.closest('div');
+            imgElement.remove();
+            imageOverlay.style.display = 'none';
+        }
 
         // 再読み込みボタン
         reloadBtn.addEventListener('click', () => {
@@ -269,17 +190,19 @@
             preview.classList.toggle('expanded');
         });
 
+        // 拡大されたプレビューの枠外をクリックで戻す
+        document.addEventListener('click', (event) => {
+            if (preview.classList.contains('expanded') && !preview.contains(event.target)) {
+                preview.classList.remove('expanded');
+            }
+        });
+
         // 全て削除ボタン
         deleteBtn.addEventListener('click', () => {
             if (confirm("削除しますか？")) {
                 htmlInput.value = '';
-                preview.innerHTML = ''; // プレビューを空にする
-                imageInput.value = ''; // 画像入力をリセット
-                imageList.innerHTML = ''; // Clear image list
-                // Reset sizes
-                preview.style.width = "80vw";
-                preview.style.height = "calc(80vw * 9 / 16)";
-                htmlInput.style.height = "100px"; // Reset textarea height
+                preview.innerHTML = '';
+                imageInput.value = '';
             }
         });
 
@@ -293,7 +216,7 @@
             htmlTagsMenu.style.display = 'none';
         });
 
-        // タグをコピーする関数
+        // HTMLタグコピー機能
         function copyToClipboard(tag) {
             navigator.clipboard.writeText(tag).then(() => {
                 alert("コピーしました: " + tag);
@@ -304,36 +227,17 @@
         pasteHtmlBtn.addEventListener('click', async () => {
             try {
                 const text = await navigator.clipboard.readText();
-                htmlInput.value += text; // 入力エリアにペースト
-                preview.innerHTML = htmlInput.value; // プレビューを更新
+                htmlInput.value += text;
+                preview.innerHTML = htmlInput.value;
             } catch (err) {
                 alert("ペーストできませんでした: " + err);
             }
         });
 
-        // Edit modal actions
-        closeEditModalBtn.addEventListener('click', () => {
-            editModal.style.display = 'none'; // Close modal
+        // 画像オーバーレイを閉じる
+        closeImageOverlay.addEventListener('click', () => {
+            imageOverlay.style.display = 'none';
         });
-
-        saveImageNameBtn.addEventListener('click', () => {
-            const newName = imageNameInput.value + imageExtensionSelect.value; // Change name and extension
-            if (currentImageElement) {
-                currentImageElement.alt = newName; // Change image name (alt text)
-                alert("画像名を変更しました: " + newName);
-                editModal.style.display = 'none'; // Close modal
-            }
-        });
-
-        deleteImageBtn.addEventListener('click', () => {
-            if (currentImageElement) {
-                currentImageElement.parentElement.remove(); // Remove image element
-                editModal.style.display = 'none'; // Close modal
-            }
-        });
-
     </script>
 </body>
 </html>
-
-
