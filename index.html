@@ -23,15 +23,6 @@
             position: relative;
             transition: transform 0.3s;
         }
-        .preview.expanded {
-            position: fixed;
-            top: 10%;
-            left: 10%;
-            width: 80%;
-            height: calc(80% * 9 / 16);
-            z-index: 1000;
-            background-color: white;
-        }
         .overlay {
             position: fixed;
             top: 0;
@@ -45,16 +36,16 @@
             z-index: 1000;
         }
         .html-tags-menu {
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(255, 255, 255, 0.5);
             padding: 20px;
             border-radius: 5px;
             display: none;
             z-index: 1000;
+            max-width: 600px;
+            margin: auto;
         }
         .html-tags-content {
-            background-color: white;
             padding: 20px;
-            border-radius: 5px;
         }
         .close-html-tags {
             float: right;
@@ -98,23 +89,20 @@
             height: 30px;
             margin: 5px;
             cursor: pointer;
+            border: 1px solid #000;
         }
-        .image-preview {
-            display: flex;
-            flex-wrap: wrap;
-        }
-        .image-container {
+        .pinball {
             position: relative;
-            margin: 5px;
+            width: 400px;
+            height: 600px;
             border: 2px solid black;
-            padding: 5px;
-            border-radius: 5px;
-            background-color: white;
+            background-color: #ccc;
+            overflow: hidden;
         }
-        .bordered-text {
-            border: 1px solid black;
-            display: inline-block;
-            padding: 2px 5px;
+        .pinball-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
         }
     </style>
 </head>
@@ -134,14 +122,7 @@
     <button class="delete-button" id="deleteBtn">全て削除</button>
     <button class="normal-button" id="htmlTagsBtn">HTMLタグ一覧</button>
 
-    <div class="overlay" id="imageOverlay">
-        <div>
-            <button class="close-html-tags" id="closeImageOverlay">×</button>
-            <div id="imageDetails"></div>
-        </div>
-    </div>
-
-    <div class="html-tags-menu" id="htmlTagsMenu">
+    <div class="overlay" id="htmlTagsMenu">
         <div class="html-tags-content">
             <button class="close-html-tags" id="closeHtmlTags">×</button>
             <h2>HTMLで使えるタグ一覧</h2>
@@ -155,19 +136,20 @@
                 <li onclick="copyToClipboard('&lt;div style=&quot;background-color: yellow;&quot;&gt;背景色付き&lt;/div&gt;')">&lt;div&gt; - 背景色付き</li>
                 <li onclick="copyToClipboard('&lt;img src=&quot;画像URL&quot; style=&quot;border-radius: 5px;&quot;&gt;')">&lt;img&gt; - 画像</li>
                 <li onclick="copyToClipboard('&lt;a href=&quot;URL&quot;&gt;ハイパーリンク&lt;/a&gt;')">&lt;a&gt; - ハイパーリンク</li>
+                <li onclick="copyToClipboard('&lt;div style=&quot;display: none;&quot;&gt;○○秒後にテキストを非表示&lt;/div&gt;')">&lt;div&gt; - ○○秒後に非表示</li>
+                <li onclick="copyToClipboard('&lt;div style=&quot;display: none;&quot;&gt;○○秒後にテキストを表示&lt;/div&gt;')">&lt;div&gt; - ○○秒後に表示</li>
                 <li onclick="copyToClipboard('&lt;canvas id=&quot;pinballCanvas&quot; width=&quot;400&quot; height=&quot;600&quot;&gt;&lt;/canvas&gt;')">&lt;canvas&gt; - ピンボールゲーム</li>
-                <li onclick="copyToClipboard('&lt;div class=&quot;bordered-text&quot;&gt;枠線付きの文字&lt;/div&gt;')">&lt;div&gt; - 枠線付き文字</li>
             </ul>
             <h2>ピンボールゲームのサンプルコード</h2>
             <pre onclick="copyToClipboard('const canvas = document.getElementById(&quot;pinballCanvas&quot;);\nconst ctx = canvas.getContext(&quot;2d&quot;);\nlet ballX = 200, ballY = 300, ballRadius = 10;\nlet ballSpeedX = 2, ballSpeedY = -2;\n\nfunction drawBall() {\n    ctx.beginPath();\n    ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);\n    ctx.fillStyle = &quot;black&quot;;\n    ctx.fill();\n    ctx.closePath();\n}\n\nfunction update() {\n    ballX += ballSpeedX;\n    ballY += ballSpeedY;\n    if (ballX + ballRadius > canvas.width || ballX - ballRadius < 0) ballSpeedX = -ballSpeedX;\n    if (ballY + ballRadius > canvas.height || ballY - ballRadius < 0) ballSpeedY = -ballSpeedY;\n}\n\nfunction draw() {\n    ctx.clearRect(0, 0, canvas.width, canvas.height);\n    drawBall();\n    update();\n    requestAnimationFrame(draw);\n}\ndraw();')">ピンボールサンプル</pre>
             <h2>色コード一覧</h2>
             <div class="color-picker">
-                <div class="color-option" style="background-color: red;" onclick="setColor('red')"></div>
-                <div class="color-option" style="background-color: green;" onclick="setColor('green')"></div>
-                <div class="color-option" style="background-color: blue;" onclick="setColor('blue')"></div>
-                <div class="color-option" style="background-color: yellow;" onclick="setColor('yellow')"></div>
-                <div class="color-option" style="background-color: purple;" onclick="setColor('purple')"></div>
-                <div class="color-option" style="background-color: orange;" onclick="setColor('orange')"></div>
+                <div class="color-option" style="background-color: red;" onclick="copyToClipboard('red')"></div>
+                <div class="color-option" style="background-color: green;" onclick="copyToClipboard('green')"></div>
+                <div class="color-option" style="background-color: blue;" onclick="copyToClipboard('blue')"></div>
+                <div class="color-option" style="background-color: yellow;" onclick="copyToClipboard('yellow')"></div>
+                <div class="color-option" style="background-color: purple;" onclick="copyToClipboard('purple')"></div>
+                <div class="color-option" style="background-color: orange;" onclick="copyToClipboard('orange')"></div>
             </div>
         </div>
     </div>
@@ -184,9 +166,6 @@
         const addImageBtn = document.getElementById('addImageBtn');
         const imageInput = document.getElementById('imageInput');
         const pasteHtmlBtn = document.getElementById('pasteHtmlBtn');
-        const imageOverlay = document.getElementById('imageOverlay');
-        const closeImageOverlay = document.getElementById('closeImageOverlay');
-        const imageDetails = document.getElementById('imageDetails');
         const imagePreviewContainer = document.createElement('div');
         imagePreviewContainer.classList.add('image-preview');
         document.body.appendChild(imagePreviewContainer);
@@ -221,16 +200,6 @@
             }
         });
 
-        // 画像詳細表示
-        function showImageDetails(name, src, imgElement) {
-            imageDetails.innerHTML = `
-                <p>画像名: <input type="text" value="${name}" onchange="updateImageName(this)"></p>
-                <img src="${src}" alt="${name}" style="max-width: 100%;">
-                <button class="delete-button" onclick="deleteImage(imgElement)">削除</button>
-            `;
-            imageOverlay.style.display = 'flex';
-        }
-
         // 画像名の更新
         function updateImageName(input) {
             const container = input.parentElement;
@@ -256,15 +225,6 @@
             preview.classList.toggle('expanded');
         });
 
-        // 拡大されたプレビューの枠外をクリックで戻す
-        document.addEventListener('click', (event) => {
-            if (preview.classList.contains('expanded')) {
-                if (!preview.contains(event.target)) {
-                    preview.classList.remove('expanded');
-                }
-            }
-        });
-
         // 全て削除ボタン
         deleteBtn.addEventListener('click', () => {
             if (confirm("削除しますか？")) {
@@ -277,7 +237,7 @@
 
         // HTMLタグ一覧ボタン
         htmlTagsBtn.addEventListener('click', () => {
-            htmlTagsMenu.style.display = 'block';
+            htmlTagsMenu.style.display = 'flex';
         });
 
         // 閉じるボタン
@@ -303,29 +263,6 @@
             }
         });
 
-        // 色変更機能
-        function setColor(color) {
-            const selectedText = window.getSelection().toString();
-            if (selectedText) {
-                const coloredText = `<span style="color: ${color};">${selectedText}</span>`;
-                htmlInput.value += coloredText; 
-                preview.innerHTML = htmlInput.value; 
-            }
-        }
-
-        // ダウンロード機能
-        document.getElementById('downloadBtn').addEventListener('click', () => {
-            const blob = new Blob([htmlInput.value], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'download.html';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        });
-
         // 指定秒後に表示する機能
         document.getElementById('showAfterDelayBtn').addEventListener('click', () => {
             const seconds = prompt("何秒後に表示しますか？");
@@ -343,11 +280,44 @@
             }, seconds * 1000);
         });
 
-        // 画像オーバーレイを閉じる
-        closeImageOverlay.addEventListener('click', () => {
-            imageOverlay.style.display = 'none';
-        });
+        // ピンボールゲームのサンプルコード
+        function setupPinball() {
+            const canvas = document.createElement('canvas');
+            canvas.id = 'pinballCanvas';
+            canvas.width = 400;
+            canvas.height = 600;
+            document.body.appendChild(canvas);
+            const ctx = canvas.getContext('2d');
+            let ballX = 200, ballY = 300, ballRadius = 10;
+            let ballSpeedX = 2, ballSpeedY = -2;
+
+            function drawBall() {
+                ctx.beginPath();
+                ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
+                ctx.fillStyle = "black";
+                ctx.fill();
+                ctx.closePath();
+            }
+
+            function update() {
+                ballX += ballSpeedX;
+                ballY += ballSpeedY;
+                if (ballX + ballRadius > canvas.width || ballX - ballRadius < 0) ballSpeedX = -ballSpeedX;
+                if (ballY + ballRadius > canvas.height || ballY - ballRadius < 0) ballSpeedY = -ballSpeedY;
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawBall();
+                update();
+                requestAnimationFrame(draw);
+            }
+            draw();
+        }
+        setupPinball();
+
     </script>
 </body>
 </html>
+
 
