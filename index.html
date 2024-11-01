@@ -22,25 +22,28 @@
         }
         .html-tags-menu {
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: white;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-            display: none;
-            z-index: 1000;
-        }
-        .overlay {
-            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.5);
+            overflow-y: auto;
+            padding: 20px;
             display: none;
-            z-index: 900;
+            z-index: 1000;
+        }
+        .html-tags-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .close-html-tags {
+            float: right;
+            border: none;
+            background: transparent;
+            color: black;
+            font-size: 20px;
+            border-radius: 5px;
         }
         button {
             margin: 5px;
@@ -57,6 +60,17 @@
             background-color: black;
             color: white;
         }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            padding: 5px;
+            cursor: pointer;
+        }
+        li:hover {
+            background-color: #f0f0f0;
+        }
     </style>
 </head>
 <body>
@@ -69,34 +83,26 @@
     <button class="delete-button" id="deleteBtn">全て削除</button>
     <button class="normal-button" id="htmlTagsBtn">HTMLタグ一覧</button>
     
-    <div class="overlay" id="overlay"></div>
     <div class="html-tags-menu" id="htmlTagsMenu">
         <div class="html-tags-content">
+            <button class="close-html-tags" id="closeHtmlTags">×</button>
             <h2>HTMLで使えるタグ一覧</h2>
             <ul>
-                <li>&lt;h1&gt; - 見出し1</li>
-                <li>&lt;h2&gt; - 見出し2</li>
-                <li>&lt;p&gt; - 段落</li>
-                <li>&lt;div&gt; - 区分</li>
-                <li>&lt;span&gt; - インライン要素</li>
-                <li>&lt;a&gt; - リンク</li>
-                <li>&lt;img&gt; - 画像</li>
-                <li>&lt;ul&gt; - 無順序リスト</li>
-                <li>&lt;ol&gt; - 有順序リスト</li>
-                <li>&lt;li&gt; - リスト項目</li>
-                <li>&lt;table&gt; - テーブル</li>
-                <li>&lt;tr&gt; - テーブル行</li>
-                <li>&lt;td&gt; - テーブルデータ</li>
-                <li>&lt;th&gt; - テーブルヘッダー</li>
-                <li>&lt;form&gt; - フォーム</li>
-                <li>&lt;input&gt; - 入力フィールド</li>
-                <li>&lt;button&gt; - ボタン</li>
-                <li>&lt;video&gt; - 動画</li>
-                <li>&lt;audio&gt; - 音声</li>
-                <li>&lt;canvas&gt; - 描画領域</li>
-                <li>&lt;svg&gt; - SVG画像</li>
+                <li onclick="copyToClipboard('&lt;b&gt;太文字&lt;/b&gt;')">&lt;b&gt; - 太文字</li>
+                <li onclick="copyToClipboard('&lt;i&gt;斜体&lt;/i&gt;')">&lt;i&gt; - 斜体</li>
+                <li onclick="copyToClipboard('&lt;u&gt;下線&lt;/u&gt;')">&lt;u&gt; - 下線</li>
+                <li onclick="copyToClipboard('&lt;div style=&quot;background-color: red;&quot;&gt;赤背景の区分&lt;/div&gt;')">&lt;div&gt; - 背景色付き区分</li>
+                <li onclick="copyToClipboard('&lt;span style=&quot;color: blue;&quot;&gt;青文字&lt;/span&gt;')">&lt;span&gt; - 特定色の文字</li>
+                <li onclick="copyToClipboard('&lt;img src=&quot;画像URL&quot;&gt;')">&lt;img&gt; - 画像</li>
+                <li onclick="copyToClipboard('&lt;canvas&gt;&lt;/canvas&gt;')">&lt;canvas&gt; - 描画領域</li>
+                <li onclick="copyToClipboard('&lt;svg&gt;&lt;/svg&gt;')">&lt;svg&gt; - SVG画像</li>
+                <li onclick="copyToClipboard('&lt;video&gt;&lt;/video&gt;')">&lt;video&gt; - 動画</li>
+                <li onclick="copyToClipboard('&lt;audio&gt;&lt;/audio&gt;')">&lt;audio&gt; - 音声</li>
+                <li onclick="copyToClipboard('&lt;ul&gt;&lt;li&gt;項目1&lt;/li&gt;&lt;/ul&gt;')">&lt;ul&gt; - 無順序リスト</li>
+                <li onclick="copyToClipboard('&lt;ol&gt;&lt;li&gt;項目1&lt;/li&gt;&lt;/ol&gt;')">&lt;ol&gt; - 有順序リスト</li>
+                <li onclick="copyToClipboard('&lt;form&gt;&lt;/form&gt;')">&lt;form&gt; - フォーム</li>
+                <li onclick="copyToClipboard('&lt;button&gt;ボタン&lt;/button&gt;')">&lt;button&gt; - ボタン</li>
             </ul>
-            <button class="close-html-tags" id="closeHtmlTags">閉じる</button>
         </div>
     </div>
 
@@ -109,7 +115,6 @@
         const htmlTagsBtn = document.getElementById('htmlTagsBtn');
         const htmlTagsMenu = document.getElementById('htmlTagsMenu');
         const closeHtmlTagsBtn = document.getElementById('closeHtmlTags');
-        const overlay = document.getElementById('overlay');
 
         // リアルタイムプレビュー
         htmlInput.addEventListener('input', () => {
@@ -123,16 +128,22 @@
 
         // 拡大ボタン
         expandBtn.addEventListener('click', () => {
-            preview.style.transform = 'scale(1.5)';
-            preview.style.opacity = '0.8';
+            preview.style.position = 'fixed';
+            preview.style.top = '50%';
+            preview.style.left = '50%';
+            preview.style.transform = 'translate(-50%, -50%) scale(1)';
+            preview.style.width = '80vw';
+            preview.style.height = 'auto';
+            preview.style.maxHeight = '80vh';
+            preview.style.zIndex = '1000';
         });
 
         // プレビューをタップで戻す
         preview.addEventListener('click', () => {
-            if (preview.style.transform === 'scale(1.5)') {
-                preview.style.transform = 'scale(1)';
-                preview.style.opacity = '1';
-            }
+            preview.style.position = '';
+            preview.style.width = '85%';
+            preview.style.height = '480px';
+            preview.style.zIndex = '';
         });
 
         // 全て削除ボタン
@@ -143,21 +154,20 @@
 
         // HTMLタグ一覧ボタン
         htmlTagsBtn.addEventListener('click', () => {
-            htmlTagsMenu.style.display = 'flex';
-            overlay.style.display = 'block';
+            htmlTagsMenu.style.display = 'block';
         });
 
         // 閉じるボタン
         closeHtmlTagsBtn.addEventListener('click', () => {
             htmlTagsMenu.style.display = 'none';
-            overlay.style.display = 'none';
         });
 
-        // Overlayをクリックした時に閉じる
-        overlay.addEventListener('click', () => {
-            htmlTagsMenu.style.display = 'none';
-            overlay.style.display = 'none';
-        });
+        // タグをコピーする関数
+        function copyToClipboard(tag) {
+            navigator.clipboard.writeText(tag).then(() => {
+                alert("コピーしました: " + tag);
+            });
+        }
     </script>
 </body>
 </html>
