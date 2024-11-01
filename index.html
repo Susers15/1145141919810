@@ -111,6 +111,11 @@
             border-radius: 5px;
             background-color: white;
         }
+        .bordered-text {
+            border: 1px solid black;
+            display: inline-block;
+            padding: 2px 5px;
+        }
     </style>
 </head>
 <body>
@@ -119,8 +124,11 @@
     <input type="file" id="imageInput" accept="image/*" style="display: none;" />
     <button class="normal-button" id="addImageBtn">画像を追加</button>
     <button class="normal-button" id="pasteHtmlBtn">ペースト</button>
+    <button class="normal-button" id="downloadBtn">ダウンロード</button>
+    <button class="normal-button" id="showAfterDelayBtn">○○秒後に表示</button>
+    <button class="normal-button" id="hideAfterDelayBtn">○○秒後に非表示</button>
     <div class="preview" id="preview"></div>
-    
+
     <button class="normal-button" id="reloadBtn">再読み込み</button>
     <button class="normal-button" id="expandBtn">拡大</button>
     <button class="delete-button" id="deleteBtn">全て削除</button>
@@ -146,7 +154,9 @@
                 <li onclick="copyToClipboard('&lt;span style=&quot;text-shadow: 2px 2px 5px #888;&quot;&gt;影付き文字&lt;/span&gt;')">&lt;span&gt; - 影付き文字</li>
                 <li onclick="copyToClipboard('&lt;div style=&quot;background-color: yellow;&quot;&gt;背景色付き&lt;/div&gt;')">&lt;div&gt; - 背景色付き</li>
                 <li onclick="copyToClipboard('&lt;img src=&quot;画像URL&quot; style=&quot;border-radius: 5px;&quot;&gt;')">&lt;img&gt; - 画像</li>
+                <li onclick="copyToClipboard('&lt;a href=&quot;URL&quot;&gt;ハイパーリンク&lt;/a&gt;')">&lt;a&gt; - ハイパーリンク</li>
                 <li onclick="copyToClipboard('&lt;canvas id=&quot;pinballCanvas&quot; width=&quot;400&quot; height=&quot;600&quot;&gt;&lt;/canvas&gt;')">&lt;canvas&gt; - ピンボールゲーム</li>
+                <li onclick="copyToClipboard('&lt;div class=&quot;bordered-text&quot;&gt;枠線付きの文字&lt;/div&gt;')">&lt;div&gt; - 枠線付き文字</li>
             </ul>
             <h2>ピンボールゲームのサンプルコード</h2>
             <pre onclick="copyToClipboard('const canvas = document.getElementById(&quot;pinballCanvas&quot;);\nconst ctx = canvas.getContext(&quot;2d&quot;);\nlet ballX = 200, ballY = 300, ballRadius = 10;\nlet ballSpeedX = 2, ballSpeedY = -2;\n\nfunction drawBall() {\n    ctx.beginPath();\n    ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);\n    ctx.fillStyle = &quot;black&quot;;\n    ctx.fill();\n    ctx.closePath();\n}\n\nfunction update() {\n    ballX += ballSpeedX;\n    ballY += ballSpeedY;\n    if (ballX + ballRadius > canvas.width || ballX - ballRadius < 0) ballSpeedX = -ballSpeedX;\n    if (ballY + ballRadius > canvas.height || ballY - ballRadius < 0) ballSpeedY = -ballSpeedY;\n}\n\nfunction draw() {\n    ctx.clearRect(0, 0, canvas.width, canvas.height);\n    drawBall();\n    update();\n    requestAnimationFrame(draw);\n}\ndraw();')">ピンボールサンプル</pre>
@@ -156,10 +166,8 @@
                 <div class="color-option" style="background-color: green;" onclick="setColor('green')"></div>
                 <div class="color-option" style="background-color: blue;" onclick="setColor('blue')"></div>
                 <div class="color-option" style="background-color: yellow;" onclick="setColor('yellow')"></div>
-                <div class="color-option" style="background-color: orange;" onclick="setColor('orange')"></div>
                 <div class="color-option" style="background-color: purple;" onclick="setColor('purple')"></div>
-                <div class="color-option" style="background-color: black;" onclick="setColor('black')"></div>
-                <div class="color-option" style="background-color: white; border: 1px solid black;" onclick="setColor('white')"></div>
+                <div class="color-option" style="background-color: orange;" onclick="setColor('orange')"></div>
             </div>
         </div>
     </div>
@@ -305,6 +313,36 @@
             }
         }
 
+        // ダウンロード機能
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            const blob = new Blob([htmlInput.value], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'download.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        // 指定秒後に表示する機能
+        document.getElementById('showAfterDelayBtn').addEventListener('click', () => {
+            const seconds = prompt("何秒後に表示しますか？");
+            const message = prompt("表示するメッセージを入力してください");
+            setTimeout(() => {
+                preview.innerHTML += `<div>${message}</div>`;
+            }, seconds * 1000);
+        });
+
+        // 指定秒後に非表示にする機能
+        document.getElementById('hideAfterDelayBtn').addEventListener('click', () => {
+            const seconds = prompt("何秒後に非表示にしますか？");
+            setTimeout(() => {
+                preview.innerHTML = '';
+            }, seconds * 1000);
+        });
+
         // 画像オーバーレイを閉じる
         closeImageOverlay.addEventListener('click', () => {
             imageOverlay.style.display = 'none';
@@ -312,3 +350,4 @@
     </script>
 </body>
 </html>
+
