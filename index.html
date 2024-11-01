@@ -33,7 +33,7 @@
             z-index: 1000;
             background-color: white;
         }
-        .html-tags-menu {
+        .html-tags-menu, .edit-modal {
             position: fixed;
             top: 0;
             left: 0;
@@ -45,12 +45,12 @@
             display: none;
             z-index: 1000;
         }
-        .html-tags-content {
+        .html-tags-content, .edit-modal-content {
             background-color: white;
             padding: 20px;
             border-radius: 5px;
         }
-        .close-html-tags {
+        .close-html-tags, .close-edit-modal {
             float: right;
             border: none;
             background: transparent;
@@ -91,6 +91,7 @@
     <textarea id="htmlInput" rows="10" style="width: 100%;"></textarea>
     <input type="file" id="imageInput" accept="image/*" style="display: none;" />
     <button class="normal-button" id="addImageBtn">画像を追加</button>
+    <button class="normal-button" id="pasteHtmlBtn" style="margin-left: 12px;">ペースト</button>
     <div class="preview" id="preview"></div>
     
     <button class="normal-button" id="reloadBtn">再読み込み</button>
@@ -124,6 +125,18 @@
         </div>
     </div>
 
+    <!-- Edit Modal -->
+    <div class="edit-modal" id="editModal">
+        <div class="edit-modal-content">
+            <button class="close-edit-modal" id="closeEditModal">×</button>
+            <h2>画像編集</h2>
+            <label for="imageName">画像名:</label>
+            <input type="text" id="imageName" style="width: 100%;" />
+            <button class="normal-button" id="saveImageNameBtn">保存</button>
+            <button class="delete-button" id="deleteImageBtn">削除</button>
+        </div>
+    </div>
+
     <script>
         const htmlInput = document.getElementById('htmlInput');
         const preview = document.getElementById('preview');
@@ -135,6 +148,14 @@
         const closeHtmlTagsBtn = document.getElementById('closeHtmlTags');
         const addImageBtn = document.getElementById('addImageBtn');
         const imageInput = document.getElementById('imageInput');
+        const pasteHtmlBtn = document.getElementById('pasteHtmlBtn');
+        const editModal = document.getElementById('editModal');
+        const closeEditModalBtn = document.getElementById('closeEditModal');
+        const imageNameInput = document.getElementById('imageName');
+        const saveImageNameBtn = document.getElementById('saveImageNameBtn');
+        const deleteImageBtn = document.getElementById('deleteImageBtn');
+
+        let currentImageElement;
 
         // リアルタイムプレビュー
         htmlInput.addEventListener('input', () => {
@@ -151,8 +172,28 @@
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const imgElement = `<img src="${e.target.result}" alt="Uploaded Image" style="max-width:100%; max-height:100%; border-radius: 5px;">`;
-                    preview.innerHTML += imgElement; // プレビューに画像を追加
+                    const imgWrapper = document.createElement('div');
+                    imgWrapper.classList.add('image-wrapper');
+
+                    const imgElement = document.createElement('img');
+                    imgElement.src = e.target.result;
+                    imgElement.alt = "Uploaded Image";
+                    imgElement.style.maxWidth = "100%";
+                    imgElement.style.maxHeight = "100%";
+                    imgElement.style.borderRadius = "5px";
+
+                    const editButton = document.createElement('button');
+                    editButton.className = 'normal-button';
+                    editButton.textContent = '編集';
+                    editButton.onclick = () => {
+                        currentImageElement = imgElement;
+                        imageNameInput.value = file.name; // Set the current image name
+                        editModal.style.display = 'block'; // Open edit modal
+                    };
+
+                    imgWrapper.appendChild(imgElement);
+                    imgWrapper.appendChild(editButton);
+                    preview.appendChild(imgWrapper);
                 };
                 reader.readAsDataURL(file);
             }
@@ -202,6 +243,39 @@
                 alert("コピーしました: " + tag);
             });
         }
+
+        // ペーストボタン
+        pasteHtmlBtn.addEventListener('click', async () => {
+            try {
+                const text = await navigator.clipboard.readText();
+                htmlInput.value += text; // 入力エリアにペースト
+                preview.innerHTML = htmlInput.value; // プレビューを更新
+            } catch (err) {
+                alert("ペーストできませんでした: " + err);
+            }
+        });
+
+        // Edit modal actions
+        closeEditModalBtn.addEventListener('click', () => {
+            editModal.style.display = 'none'; // Close modal
+        });
+
+        saveImageNameBtn.addEventListener('click', () => {
+            const newName = imageNameInput.value;
+            if (currentImageElement) {
+                currentImageElement.alt = newName; // Change image name (alt text)
+                alert("画像名を変更しました: " + newName);
+                editModal.style.display = 'none'; // Close modal
+            }
+        });
+
+        deleteImageBtn.addEventListener('click', () => {
+            if (currentImageElement) {
+                currentImageElement.parentElement.remove(); // Remove image element
+                editModal.style.display = 'none'; // Close modal
+            }
+        });
     </script>
 </body>
 </html>
+
