@@ -1,83 +1,145 @@
-<!DOCTYPE html>
+　<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTMLプレビュー</title>
+    <title>リアルタイムHTMLプレビュー</title>
     <link rel="manifest" href="manifest.json">
     <style>
+        /* スタイルの設定 */
         body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            font-family: Arial, sans-serif;
             background-color: #f0f0f0;
-            margin: 0;
-            height: 100vh;
+            padding: 20px;
         }
-        textarea {
-            width: 85%;
-            height: 200px;
-            margin: 20px 0;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            padding: 10px;
-        }
-        .preview-container {
-            position: relative;
+        .preview {
             width: 85%;
             max-width: 800px;
-            aspect-ratio: 16 / 9;
+            margin: 20px auto;
             border-radius: 5px;
-            overflow: hidden;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            background: white;
         }
-        iframe {
-            width: 100%;
-            height: 100%;
+        .html-tags-menu {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 1000;
+        }
+        .close-html-tags {
+            margin-top: 10px;
+            background-color: #fff;
+            color: #000;
             border: none;
             border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+        }
+        /* ボタンスタイル */
+        button {
+            margin: 5px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .delete-button {
+            background-color: red;
+            color: white;
+        }
+        .normal-button {
+            background-color: black;
+            color: white;
         }
     </style>
 </head>
 <body>
-    <h1>HTMLプレビュー</h1>
-    <textarea id="htmlInput" placeholder="ここにHTMLコードを入力"></textarea>
-    <div class="preview-container" id="previewContainer">
-        <iframe id="preview"></iframe>
+    <h1>リアルタイムHTMLプレビュー</h1>
+    <textarea id="htmlInput" rows="10" style="width: 100%;"></textarea>
+    <div class="preview" id="preview"></div>
+    
+    <button class="normal-button" id="reloadBtn">再読み込み</button>
+    <button class="normal-button" id="expandBtn">拡大</button>
+    <button class="delete-button" id="deleteBtn">全て削除</button>
+    <button class="normal-button" id="htmlTagsBtn">HTMLタグ一覧</button>
+    
+    <div class="html-tags-menu" id="htmlTagsMenu">
+        <div class="html-tags-content">
+            <h2>HTMLで使えるタグ一覧</h2>
+            <ul>
+                <li>&lt;h1&gt; - 見出し1</li>
+                <li>&lt;h2&gt; - 見出し2</li>
+                <li>&lt;p&gt; - 段落</li>
+                <li>&lt;div&gt; - 区分</li>
+                <li>&lt;span&gt; - インライン要素</li>
+                <li>&lt;a&gt; - リンク</li>
+                <li>&lt;img&gt; - 画像</li>
+                <li>&lt;ul&gt; - 無順序リスト</li>
+                <li>&lt;ol&gt; - 有順序リスト</li>
+                <li>&lt;li&gt; - リスト項目</li>
+                <li>&lt;table&gt; - テーブル</li>
+                <li>&lt;tr&gt; - テーブル行</li>
+                <li>&lt;td&gt; - テーブルデータ</li>
+                <li>&lt;th&gt; - テーブルヘッダー</li>
+                <li>&lt;form&gt; - フォーム</li>
+                <li>&lt;input&gt; - 入力フィールド</li>
+                <li>&lt;button&gt; - ボタン</li>
+                <li>&lt;video&gt; - 動画</li>
+                <li>&lt;audio&gt; - 音声</li>
+                <li>&lt;canvas&gt; - 描画領域</li>
+                <li>&lt;svg&gt; - SVG画像</li>
+            </ul>
+            <button class="close-html-tags" id="closeHtmlTags">閉じる</button>
+        </div>
     </div>
 
     <script>
         const htmlInput = document.getElementById('htmlInput');
         const preview = document.getElementById('preview');
-        const previewContainer = document.getElementById('previewContainer');
+        const reloadBtn = document.getElementById('reloadBtn');
+        const expandBtn = document.getElementById('expandBtn');
+        const deleteBtn = document.getElementById('deleteBtn');
+        const htmlTagsBtn = document.getElementById('htmlTagsBtn');
+        const htmlTagsMenu = document.getElementById('htmlTagsMenu');
+        const closeHtmlTagsBtn = document.getElementById('closeHtmlTags');
 
+        // リアルタイムプレビュー
         htmlInput.addEventListener('input', () => {
-            const doc = preview.contentDocument || preview.contentWindow.document;
-            doc.open();
-            doc.write(htmlInput.value);
-            doc.close();
+            preview.innerHTML = htmlInput.value;
         });
 
-        let isZoomed = false;
-
-        previewContainer.addEventListener('dblclick', () => {
-            if (isZoomed) {
-                previewContainer.style.transform = 'scale(1)';
-                previewContainer.style.transition = 'transform 0.5s ease';
-            } else {
-                previewContainer.style.transform = 'scale(1.85)';
-                previewContainer.style.transition = 'transform 0.5s ease';
-            }
-            isZoomed = !isZoomed;
+        // 再読み込みボタン
+        reloadBtn.addEventListener('click', () => {
+            preview.innerHTML = htmlInput.value;
         });
 
-        // Service Worker registration for PWA
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js')
-                .then(reg => console.log('Service Worker registered:', reg))
-                .catch(err => console.log('Service Worker registration failed:', err));
-        }
+        // 拡大ボタン
+        expandBtn.addEventListener('click', () => {
+            preview.style.transform = 'scale(1.5)';
+            preview.style.transition = 'transform 0.2s';
+        });
+
+        // 全て削除ボタン
+        deleteBtn.addEventListener('click', () => {
+            htmlInput.value = '';
+            preview.innerHTML = '';
+        });
+
+        // HTMLタグ一覧ボタン
+        htmlTagsBtn.addEventListener('click', () => {
+            htmlTagsMenu.style.display = 'flex';
+        });
+
+        // 閉じるボタン
+        closeHtmlTagsBtn.addEventListener('click', () => {
+            htmlTagsMenu.style.display = 'none';
+        });
     </script>
 </body>
 </html>
-
