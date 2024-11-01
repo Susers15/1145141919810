@@ -11,6 +11,11 @@
             background-color: #f0f0f0;
             padding: 20px;
         }
+        #htmlInput {
+            width: 100%;
+            min-height: 100px; /* Minimum height */
+            resize: vertical; /* Allow vertical resizing */
+        }
         .preview {
             width: 80vw; /* スマートフォンに最適化 */
             height: calc(80vw * 9 / 16); /* 16:9比率 */
@@ -23,17 +28,31 @@
             padding: 10px;
             overflow: auto; /* スクロール可能に */
             position: relative;
+            resize: both; /* Allow both horizontal and vertical resizing */
+            min-width: 320px; /* Minimum width */
+            min-height: 180px; /* Minimum height */
         }
-        .preview.expanded {
-            position: fixed;
-            top: 10%;
-            left: 10%;
-            width: 80%;
-            height: calc(80% * 9 / 16);
-            z-index: 1000;
-            background-color: white;
+        .image-list {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
         }
-        .html-tags-menu, .edit-modal {
+        .image-item {
+            position: relative;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            overflow: hidden;
+            width: 100px; /* Thumbnail size */
+            height: 100px; /* Thumbnail size */
+        }
+        .image-item img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 5px;
+        }
+        .edit-modal {
             position: fixed;
             top: 0;
             left: 0;
@@ -45,12 +64,13 @@
             display: none;
             z-index: 1000;
         }
-        .html-tags-content, .edit-modal-content {
+        .edit-modal-content {
             background-color: white;
             padding: 20px;
             border-radius: 5px;
+            position: relative;
         }
-        .close-html-tags, .close-edit-modal {
+        .close-edit-modal {
             float: right;
             border: none;
             background: transparent;
@@ -73,27 +93,34 @@
             background-color: black;
             color: white;
         }
-        ul {
-            list-style: none;
-            padding: 0;
+        .expanded-image {
+            position: fixed;
+            top: 20%;
+            left: 50%;
+            transform: translate(-50%, -20%);
+            border: 12px solid #f0f0f0;
+            border-radius: 5px;
+            z-index: 1001;
+            display: none;
         }
-        li {
-            padding: 5px;
-            cursor: pointer;
-        }
-        li:hover {
-            background-color: #f0f0f0;
+        .expanded-image img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 5px;
         }
     </style>
 </head>
 <body>
-    <h1>リアルタイムHTMLプレビュー</h1>
-    <textarea id="htmlInput" rows="10" style="width: 100%;"></textarea>
+    <h1>プレビュー</h1>
+    <textarea id="htmlInput" rows="10"></textarea>
     <input type="file" id="imageInput" accept="image/*" style="display: none;" />
     <button class="normal-button" id="addImageBtn">画像を追加</button>
     <button class="normal-button" id="pasteHtmlBtn" style="margin-left: 12px;">ペースト</button>
     <div class="preview" id="preview"></div>
     
+    <h2>画像一覧</h2>
+    <ul class="image-list" id="imageList"></ul>
+
     <button class="normal-button" id="reloadBtn">再読み込み</button>
     <button class="normal-button" id="expandBtn">拡大</button>
     <button class="delete-button" id="deleteBtn">全て削除</button>
@@ -132,14 +159,27 @@
             <h2>画像編集</h2>
             <label for="imageName">画像名:</label>
             <input type="text" id="imageName" style="width: 100%;" />
-            <button class="normal-button" id="saveImageNameBtn">保存</button>
+            <button class="normal-button" id="saveImageNameBtn">名前変更</button>
             <button class="delete-button" id="deleteImageBtn">削除</button>
+            <label for="imageExtension">拡張子:</label>
+            <select id="imageExtension">
+                <option value=".jpg">.jpg</option>
+                <option value=".png">.png</option>
+                <option value=".gif">.gif</option>
+            </select>
         </div>
+    </div>
+
+    <div class="expanded-image" id="expandedImage">
+        <button class="close-edit-modal" id="closeExpandedImage">×</button>
+        <img id="expandedImageContent" alt="Expanded Image" />
+        <button class="normal-button" id="editExpandedImageBtn">編集</button>
     </div>
 
     <script>
         const htmlInput = document.getElementById('htmlInput');
         const preview = document.getElementById('preview');
+        const imageList = document.getElementById('imageList');
         const reloadBtn = document.getElementById('reloadBtn');
         const expandBtn = document.getElementById('expandBtn');
         const deleteBtn = document.getElementById('deleteBtn');
@@ -154,6 +194,11 @@
         const imageNameInput = document.getElementById('imageName');
         const saveImageNameBtn = document.getElementById('saveImageNameBtn');
         const deleteImageBtn = document.getElementById('deleteImageBtn');
+        const expandedImage = document.getElementById('expandedImage');
+        const expandedImageContent = document.getElementById('expandedImageContent');
+        const closeExpandedImageBtn = document.getElementById('closeExpandedImage');
+        const editExpandedImageBtn = document.getElementById('editExpandedImageBtn');
+        const imageExtensionSelect = document.getElementById('imageExtension');
 
         let currentImageElement;
 
@@ -173,14 +218,11 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const imgWrapper = document.createElement('div');
-                    imgWrapper.classList.add('image-wrapper');
+                    imgWrapper.classList.add('image-item');
 
                     const imgElement = document.createElement('img');
                     imgElement.src = e.target.result;
-                    imgElement.alt = "Uploaded Image";
-                    imgElement.style.maxWidth = "100%";
-                    imgElement.style.maxHeight = "100%";
-                    imgElement.style.borderRadius = "5px";
+                    imgElement.alt = file.name;
 
                     const editButton = document.createElement('button');
                     editButton.className = 'normal-button';
@@ -188,15 +230,33 @@
                     editButton.onclick = () => {
                         currentImageElement = imgElement;
                         imageNameInput.value = file.name; // Set the current image name
+                        imageExtensionSelect.value = file.name.split('.').pop(); // Set the current extension
                         editModal.style.display = 'block'; // Open edit modal
                     };
 
                     imgWrapper.appendChild(imgElement);
                     imgWrapper.appendChild(editButton);
-                    preview.appendChild(imgWrapper);
+                    imageList.appendChild(imgWrapper);
+
+                    // Create the image tag in HTML input
+                    const imgTag = `<img src="${e.target.result}" alt="${file.name}" />`;
+                    htmlInput.value += imgTag; // Append the image tag to the HTML input
                 };
                 reader.readAsDataURL(file);
             }
+        });
+
+        // 画像を選択した時の拡大表示
+        imageList.addEventListener('click', (event) => {
+            if (event.target.tagName === 'IMG') {
+                expandedImageContent.src = event.target.src; // Set the expanded image
+                expandedImage.style.display = 'block'; // Show expanded image
+            }
+        });
+
+        // 拡大画像の閉じるボタン
+        closeExpandedImageBtn.addEventListener('click', () => {
+            expandedImage.style.display = 'none'; // Close expanded image
         });
 
         // 再読み込みボタン
@@ -209,21 +269,17 @@
             preview.classList.toggle('expanded');
         });
 
-        // 拡大されたプレビューの枠外をクリックで戻す
-        document.addEventListener('click', (event) => {
-            if (preview.classList.contains('expanded')) {
-                if (!preview.contains(event.target)) {
-                    preview.classList.remove('expanded');
-                }
-            }
-        });
-
         // 全て削除ボタン
         deleteBtn.addEventListener('click', () => {
             if (confirm("削除しますか？")) {
                 htmlInput.value = '';
                 preview.innerHTML = ''; // プレビューを空にする
                 imageInput.value = ''; // 画像入力をリセット
+                imageList.innerHTML = ''; // Clear image list
+                // Reset sizes
+                preview.style.width = "80vw";
+                preview.style.height = "calc(80vw * 9 / 16)";
+                htmlInput.style.height = "100px"; // Reset textarea height
             }
         });
 
@@ -261,7 +317,7 @@
         });
 
         saveImageNameBtn.addEventListener('click', () => {
-            const newName = imageNameInput.value;
+            const newName = imageNameInput.value + imageExtensionSelect.value; // Change name and extension
             if (currentImageElement) {
                 currentImageElement.alt = newName; // Change image name (alt text)
                 alert("画像名を変更しました: " + newName);
@@ -275,7 +331,9 @@
                 editModal.style.display = 'none'; // Close modal
             }
         });
+
     </script>
 </body>
 </html>
+
 
