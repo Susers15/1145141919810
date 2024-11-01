@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTMLプレビュー</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        textarea {
+            width: 80%;
+            height: 200px;
+        }
+        iframe {
+            width: 80%;
+            height: 300px;
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <h1>HTMLプレビュー</h1>
+    <textarea id="htmlInput" placeholder="ここにHTMLコードを入力"></textarea>
+    <iframe id="preview"></iframe>
+
+    <script>
+        const htmlInput = document.getElementById('htmlInput');
+        const preview = document.getElementById('preview');
+
+        htmlInput.addEventListener('input', () => {
+            const doc = preview.contentDocument || preview.contentWindow.document;
+            doc.open();
+            doc.write(htmlInput.value);
+            doc.close();
+        });
+    </script>
+</body>
+</html>
