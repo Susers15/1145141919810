@@ -22,6 +22,16 @@
             transition: transform 0.3s, opacity 0.3s;
             padding: 10px;
             overflow: auto; /* スクロール可能に */
+            position: relative;
+        }
+        .preview.expanded {
+            position: fixed;
+            top: 10%;
+            left: 10%;
+            width: 80%;
+            height: calc(80% * 9 / 16);
+            z-index: 1000;
+            background-color: white;
         }
         .html-tags-menu {
             position: fixed;
@@ -50,7 +60,7 @@
         }
         button {
             margin: 5px;
-            padding: 12px; /* ボタンサイズを少し大きく */
+            padding: 12px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
@@ -99,7 +109,8 @@
                 <li onclick="copyToClipboard('&lt;div style=&quot;background-image: url(&quot;background.jpg&quot;);&quot;&gt;背景画像付き区分&lt;/div&gt;')">&lt;div&gt; - 背景画像</li>
                 <li onclick="copyToClipboard('&lt;span style=&quot;color: red;&quot;&gt;赤文字&lt;/span&gt;')">&lt;span&gt; - 文字色変更</li>
                 <li onclick="copyToClipboard('&lt;span style=&quot;text-shadow: 2px 2px 4px #000;&quot;&gt;影付き文字&lt;/span&gt;')">&lt;span&gt; - 影付き文字</li>
-                <li onclick="copyToClipboard('&lt;img src=&quot;画像URL&quot;&gt;')">&lt;img&gt; - 画像</li>
+                <li onclick="copyToClipboard('&lt;img src=&quot;画像URL&quot; style=&quot;border-radius: 5px;&quot;&gt;')">&lt;img&gt; - 画像 (角を丸める)</li>
+                <li onclick="copyToClipboard('&lt;div style=&quot;background-image: url(&quot;壁紙URL&quot;); height: 100%;&quot;&gt;&lt;/div&gt;')">&lt;div&gt; - 壁紙</li>
                 <li onclick="copyToClipboard('&lt;canvas&gt;&lt;/canvas&gt;')">&lt;canvas&gt; - 描画領域</li>
                 <li onclick="copyToClipboard('&lt;svg&gt;&lt;/svg&gt;')">&lt;svg&gt; - SVG画像</li>
                 <li onclick="copyToClipboard('&lt;video&gt;&lt;/video&gt;')">&lt;video&gt; - 動画</li>
@@ -140,7 +151,7 @@
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const imgElement = `<img src="${e.target.result}" alt="Uploaded Image" style="max-width:100%; max-height:100%;">`;
+                    const imgElement = `<img src="${e.target.result}" alt="Uploaded Image" style="max-width:100%; max-height:100%; border-radius: 5px;">`;
                     preview.innerHTML += imgElement; // プレビューに画像を追加
                 };
                 reader.readAsDataURL(file);
@@ -154,26 +165,15 @@
 
         // 拡大ボタン
         expandBtn.addEventListener('click', () => {
-            preview.style.position = 'fixed';
-            preview.style.top = '0';
-            preview.style.left = '0';
-            preview.style.width = '80%'; // 拡大中のサイズ
-            preview.style.height = 'calc(80% * 9 / 16)';
-            preview.style.transform = 'scale(1)';
-            preview.style.zIndex = '1000';
-            preview.style.backgroundColor = 'white';
-            preview.style.overflow = 'scroll'; // スクロール可能に
+            preview.classList.toggle('expanded');
         });
 
         // 拡大されたプレビューの枠外をクリックで戻す
         document.addEventListener('click', (event) => {
-            if (event.target === preview) return; // プレビュー内のクリックを無視
-            if (preview.style.zIndex === '1000') {
-                preview.style.position = '';
-                preview.style.width = '80vw'; // 元のサイズに戻す
-                preview.style.height = 'calc(80vw * 9 / 16)';
-                preview.style.zIndex = '';
-                preview.style.backgroundColor = 'white'; // 背景色を元に戻す
+            if (preview.classList.contains('expanded')) {
+                if (!preview.contains(event.target)) {
+                    preview.classList.remove('expanded');
+                }
             }
         });
 
