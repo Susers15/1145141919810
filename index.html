@@ -46,6 +46,7 @@
         }
         .html-tags-content {
             padding: 20px;
+            color: white;
         }
         .close-html-tags {
             float: right;
@@ -127,15 +128,20 @@
             <button class="close-html-tags" id="closeHtmlTags">×</button>
             <h2>HTMLで使えるタグ一覧</h2>
             <ul>
+                <li onclick="copyToClipboard('&lt;h1&gt;タイトル&lt;/h1&gt;')">&lt;h1&gt; - タイトル</li>
+                <li onclick="copyToClipboard('&lt;h2&gt;サブタイトル&lt;/h2&gt;')">&lt;h2&gt; - サブタイトル</li>
+                <li onclick="copyToClipboard('&lt;h3&gt;見出し&lt;/h3&gt;')">&lt;h3&gt; - 見出し</li>
                 <li onclick="copyToClipboard('&lt;b&gt;太文字&lt;/b&gt;')">&lt;b&gt; - 太文字</li>
                 <li onclick="copyToClipboard('&lt;i&gt;斜体&lt;/i&gt;')">&lt;i&gt; - 斜体</li>
                 <li onclick="copyToClipboard('&lt;u&gt;下線&lt;/u&gt;')">&lt;u&gt; - 下線</li>
                 <li onclick="copyToClipboard('&lt;span style=&quot;color: red;&quot;&gt;赤文字&lt;/span&gt;')">&lt;span&gt; - 文字色変更</li>
                 <li onclick="copyToClipboard('&lt;span style=&quot;font-size: 20px;&quot;&gt;大きな文字&lt;/span&gt;')">&lt;span&gt; - 文字サイズ指定</li>
-                <li onclick="copyToClipboard('&lt;span style=&quot;text-shadow: 2px 2px 5px #888;&quot;&gt;影付き文字&lt;/span&gt;')">&lt;span&gt; - 影付き文字</li>
                 <li onclick="copyToClipboard('&lt;div style=&quot;background-color: yellow;&quot;&gt;背景色付き&lt;/div&gt;')">&lt;div&gt; - 背景色付き</li>
                 <li onclick="copyToClipboard('&lt;img src=&quot;画像URL&quot; style=&quot;border-radius: 5px;&quot;&gt;')">&lt;img&gt; - 画像</li>
                 <li onclick="copyToClipboard('&lt;a href=&quot;URL&quot;&gt;ハイパーリンク&lt;/a&gt;')">&lt;a&gt; - ハイパーリンク</li>
+                <li onclick="copyToClipboard('&lt;ul&gt;&lt;li&gt;リスト項目&lt;/li&gt;&lt;/ul&gt;')">&lt;ul&gt; - 順不同リスト</li>
+                <li onclick="copyToClipboard('&lt;header&gt;ヘッダー&lt;/header&gt;')">&lt;header&gt; - ヘッダー</li>
+                <li onclick="copyToClipboard('&lt;footer&gt;フッター&lt;/footer&gt;')">&lt;footer&gt; - フッター</li>
                 <li onclick="copyToClipboard('&lt;div style=&quot;display: none;&quot;&gt;○○秒後にテキストを非表示&lt;/div&gt;')">&lt;div&gt; - ○○秒後に非表示</li>
                 <li onclick="copyToClipboard('&lt;div style=&quot;display: none;&quot;&gt;○○秒後にテキストを表示&lt;/div&gt;')">&lt;div&gt; - ○○秒後に表示</li>
                 <li onclick="copyToClipboard('&lt;canvas id=&quot;pinballCanvas&quot; width=&quot;400&quot; height=&quot;600&quot;&gt;&lt;/canvas&gt;')">&lt;canvas&gt; - ピンボールゲーム</li>
@@ -249,6 +255,8 @@
         function copyToClipboard(tag) {
             navigator.clipboard.writeText(tag).then(() => {
                 alert("コピーしました: " + tag);
+                htmlInput.value += tag; // Paste directly into HTML input
+                preview.innerHTML = htmlInput.value; // Update preview
             });
         }
 
@@ -315,9 +323,6 @@
             draw();
         }
         setupPinball();
-
     </script>
 </body>
 </html>
-
-
