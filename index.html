@@ -20,8 +20,6 @@
             background: white;
             padding: 10px;
             overflow: auto; 
-            position: relative;
-            transition: transform 0.3s;
         }
         .overlay {
             position: fixed;
@@ -42,19 +40,18 @@
             display: none;
             z-index: 1000;
             max-width: 600px;
-            margin: auto;
             max-height: 70vh;
             overflow-y: auto; /* Make it scrollable */
         }
         .html-tags-content {
             padding: 20px;
-            color: black; /* Changed to black for better visibility */
+            color: white; /* Changed back to white */
         }
         .close-html-tags {
             float: right;
             border: none;
             background: transparent;
-            color: black;
+            color: white; /* Changed to white for visibility */
             font-size: 20px;
         }
         button {
@@ -75,6 +72,7 @@
         ul {
             list-style: none;
             padding: 0;
+            columns: 2; /* Two columns for list items */
         }
         li {
             padding: 5px;
@@ -122,12 +120,9 @@
     <button class="normal-button" id="addImageBtn">画像を追加</button>
     <button class="normal-button" id="pasteHtmlBtn">ペースト</button>
     <button class="normal-button" id="downloadBtn">ダウンロード</button>
-    <button class="normal-button" id="showAfterDelayBtn">○○秒後に表示</button>
-    <button class="normal-button" id="hideAfterDelayBtn">○○秒後に非表示</button>
     <div class="preview" id="preview"></div>
 
     <button class="normal-button" id="reloadBtn">再読み込み</button>
-    <button class="normal-button" id="expandBtn">拡大</button>
     <button class="delete-button" id="deleteBtn">全て削除</button>
     <button class="normal-button" id="htmlTagsBtn">HTMLタグ一覧</button>
 
@@ -175,17 +170,15 @@
         const htmlInput = document.getElementById('htmlInput');
         const preview = document.getElementById('preview');
         const reloadBtn = document.getElementById('reloadBtn');
-        const expandBtn = document.getElementById('expandBtn');
-        const deleteBtn = document.getElementById('deleteBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
         const htmlTagsBtn = document.getElementById('htmlTagsBtn');
         const htmlTagsMenu = document.getElementById('htmlTagsMenu');
         const closeHtmlTagsBtn = document.getElementById('closeHtmlTags');
-        const addImageBtn = document.getElementById('addImageBtn');
         const imageInput = document.getElementById('imageInput');
-        const pasteHtmlBtn = document.getElementById('pasteHtmlBtn');
         const imagePreviewContainer = document.createElement('div');
         imagePreviewContainer.classList.add('image-preview');
         document.body.appendChild(imagePreviewContainer);
+        const images = [];
 
         // リアルタイムプレビュー
         htmlInput.addEventListener('input', () => {
@@ -193,7 +186,7 @@
         });
 
         // 画像を追加ボタン
-        addImageBtn.addEventListener('click', () => {
+        document.getElementById('addImageBtn').addEventListener('click', () => {
             imageInput.click();
         });
 
@@ -211,6 +204,7 @@
                         ${imgElement}
                         <button class="delete-button" onclick="deleteImage(this)">削除</button>
                     `;
+                    images.push({ name: imgName, src: e.target.result }); // Store image info
                     imagePreviewContainer.appendChild(imageContainer);
                 };
                 reader.readAsDataURL(file);
@@ -230,6 +224,12 @@
         function deleteImage(button) {
             const container = button.parentElement;
             imagePreviewContainer.removeChild(container);
+            // Remove the image from the array
+            const imgName = container.querySelector('input').value;
+            const index = images.findIndex(img => img.name === imgName);
+            if (index > -1) {
+                images.splice(index, 1);
+            }
         }
 
         // 再読み込みボタン
@@ -237,19 +237,20 @@
             preview.innerHTML = htmlInput.value;
         });
 
-        // 拡大ボタン
-        expandBtn.addEventListener('click', () => {
-            preview.classList.toggle('expanded');
-        });
-
-        // 全て削除ボタン
-        deleteBtn.addEventListener('click', () => {
-            if (confirm("削除しますか？")) {
-                htmlInput.value = '';
-                preview.innerHTML = '';
-                imagePreviewContainer.innerHTML = ''; 
-                imageInput.value = ''; 
-            }
+        // ダウンロードボタン
+        downloadBtn.addEventListener('click', () => {
+            const zip = new JSZip();
+            zip.file("index.html", htmlInput.value);
+            images.forEach(image => {
+                zip.file(image.name, image.src.split(',')[1], {base64: true}); // Add image file
+            });
+            zip.generateAsync({type:"blob"})
+                .then(function(content) {
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(content);
+                    link.download = "download.zip";
+                    link.click();
+                });
         });
 
         // HTMLタグ一覧ボタン
@@ -272,7 +273,7 @@
         }
 
         // ペーストボタン
-        pasteHtmlBtn.addEventListener('click', async () => {
+        document.getElementById('pasteHtmlBtn').addEventListener('click', async () => {
             try {
                 const text = await navigator.clipboard.readText();
                 htmlInput.value += text; 
@@ -280,23 +281,6 @@
             } catch (err) {
                 alert("ペーストできませんでした: " + err);
             }
-        });
-
-        // 指定秒後に表示する機能
-        document.getElementById('showAfterDelayBtn').addEventListener('click', () => {
-            const seconds = prompt("何秒後に表示しますか？");
-            const message = prompt("表示するメッセージを入力してください");
-            setTimeout(() => {
-                preview.innerHTML += `<div>${message}</div>`;
-            }, seconds * 1000);
-        });
-
-        // 指定秒後に非表示にする機能
-        document.getElementById('hideAfterDelayBtn').addEventListener('click', () => {
-            const seconds = prompt("何秒後に非表示にしますか？");
-            setTimeout(() => {
-                preview.innerHTML = '';
-            }, seconds * 1000);
         });
 
         // ピンボールゲームのサンプルコード
@@ -335,5 +319,8 @@
         }
         setupPinball();
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js"></script>
 </body>
 </html>
+
+
