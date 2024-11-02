@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>リアルタイムHTMLプレビュー</title>
+    <link rel="manifest" href="manifest.json">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -59,11 +60,12 @@
         }
         button {
             margin: 5px;
-            padding: 12px;
+            padding: 15px; /* Increased padding */
             border: none;
             border-radius: 5px;
             cursor: pointer;
             box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+            font-weight: bold; /* Bold text */
         }
         .delete-button {
             background-color: red;
@@ -83,9 +85,11 @@
         li {
             padding: 5px;
             cursor: pointer;
+            opacity: 0.15; /* Reduced opacity for sample code */
         }
         li:hover {
             background-color: #f0f0f0;
+            opacity: 1; /* Full opacity on hover */
         }
         .color-picker {
             display: flex;
@@ -112,6 +116,7 @@
     <button class="normal-button" id="reloadBtn">再読み込み</button>
     <button class="delete-button" id="deleteBtn">全て削除</button>
     <button class="normal-button" id="htmlTagsBtn">HTMLタグ一覧</button>
+    <button class="normal-button" id="pasteBtn">ペースト</button> <!-- Paste button -->
 
     <div class="preview" id="preview"></div>
 
@@ -164,6 +169,7 @@
         const imageInput = document.getElementById('imageInput');
         const addImageBtn = document.getElementById('addImageBtn');
         const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+        const pasteBtn = document.getElementById('pasteBtn');
 
         htmlInput.addEventListener('input', () => {
             preview.innerHTML = htmlInput.value;
@@ -218,6 +224,16 @@
             }
         });
 
+        pasteBtn.addEventListener('click', async () => {
+            try {
+                const text = await navigator.clipboard.readText();
+                htmlInput.value += text; // Append pasted text
+                preview.innerHTML = htmlInput.value; // Update preview
+            } catch (err) {
+                alert('ペーストに失敗しました');
+            }
+        });
+
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(() => {
                 alert('コピーしました: ' + text);
@@ -226,6 +242,3 @@
     </script>
 </body>
 </html>
-
-
-
