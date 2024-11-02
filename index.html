@@ -20,6 +20,8 @@
             background: white;
             padding: 10px;
             overflow: auto; 
+            position: relative;
+            transition: transform 0.3s;
         }
         .overlay {
             position: fixed;
@@ -34,14 +36,15 @@
             z-index: 1000;
         }
         .html-tags-menu {
-            background-color: rgba(255, 255, 255, 0.7); /* Opacity set to 70% */
+            background-color: rgba(255, 255, 255, 0.7);
             padding: 20px;
             border-radius: 5px;
             display: none;
             z-index: 1000;
             max-width: 600px;
-            max-height: 70vh;
-            overflow-y: auto; /* Make it scrollable */
+            margin: auto;
+            overflow-y: auto;
+            max-height: 80vh;
         }
         .html-tags-content {
             padding: 20px;
@@ -51,16 +54,16 @@
             float: right;
             border: none;
             background: transparent;
-            color: white;
+            color: black;
             font-size: 20px;
         }
         button {
             margin: 5px;
-            padding: 15px; /* Increased padding */
+            padding: 12px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5); /* Added shadow */
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
         }
         .delete-button {
             background-color: red;
@@ -73,15 +76,16 @@
         ul {
             list-style: none;
             padding: 0;
-            columns: 2; /* Two columns for list items */
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
         }
         li {
             padding: 5px;
             cursor: pointer;
-            position: relative; /* Positioning for highlight */
         }
         li:hover {
-            background-color: rgba(255, 255, 255, 0.2); /* Light background on hover */
+            background-color: #f0f0f0;
         }
         .color-picker {
             display: flex;
@@ -94,63 +98,45 @@
             cursor: pointer;
             border: 1px solid #000;
         }
-        .pinball {
-            position: relative;
-            width: 400px;
-            height: 600px;
-            border: 2px solid black;
-            background-color: #ccc;
-            overflow: hidden;
-        }
-        .pinball-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-        }
-        .highlight {
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            padding: 5px;
-            margin: 5px 0;
+        .image-preview {
+            margin: 20px 0;
         }
     </style>
 </head>
 <body>
-    <h1>プレビュー</h1>
+    <h1>リアルタイムHTMLプレビュー</h1>
     <textarea id="htmlInput" rows="10" style="width: 100%;"></textarea>
     <input type="file" id="imageInput" accept="image/*" style="display: none;" />
     <button class="normal-button" id="addImageBtn">画像を追加</button>
-    <button class="normal-button" id="pasteHtmlBtn">ペースト</button>
     <button class="normal-button" id="downloadBtn">ダウンロード</button>
-    <div class="preview" id="preview"></div>
-
     <button class="normal-button" id="reloadBtn">再読み込み</button>
     <button class="delete-button" id="deleteBtn">全て削除</button>
     <button class="normal-button" id="htmlTagsBtn">HTMLタグ一覧</button>
+
+    <div class="preview" id="preview"></div>
 
     <div class="overlay" id="htmlTagsMenu">
         <div class="html-tags-content">
             <button class="close-html-tags" id="closeHtmlTags">×</button>
             <h2>HTMLで使えるタグ一覧</h2>
             <ul>
-                <li onclick="copyToClipboard('&lt;h1&gt;タイトル&lt;/h1&gt;')" class="highlight">&lt;h1&gt; - タイトル</li>
-                <li onclick="copyToClipboard('&lt;h2&gt;サブタイトル&lt;/h2&gt;')" class="highlight">&lt;h2&gt; - サブタイトル</li>
-                <li onclick="copyToClipboard('&lt;h3&gt;見出し&lt;/h3&gt;')" class="highlight">&lt;h3&gt; - 見出し</li>
-                <li onclick="copyToClipboard('&lt;b&gt;太文字&lt;/b&gt;')" class="highlight">&lt;b&gt; - 太文字</li>
-                <li onclick="copyToClipboard('&lt;i&gt;斜体&lt;/i&gt;')" class="highlight">&lt;i&gt; - 斜体</li>
-                <li onclick="copyToClipboard('&lt;u&gt;下線&lt;/u&gt;')" class="highlight">&lt;u&gt; - 下線</li>
-                <li onclick="copyToClipboard('&lt;span style=&quot;color: red;&quot;&gt;赤文字&lt;/span&gt;')" class="highlight">&lt;span&gt; - 文字色変更</li>
-                <li onclick="copyToClipboard('&lt;span style=&quot;font-size: 20px;&quot;&gt;大きな文字&lt;/span&gt;')" class="highlight">&lt;span&gt; - 文字サイズ指定</li>
-                <li onclick="copyToClipboard('&lt;div style=&quot;background-color: yellow;&quot;&gt;背景色付き&lt;/div&gt;')" class="highlight">&lt;div&gt; - 背景色付き</li>
-                <li onclick="copyToClipboard('&lt;img src=&quot;画像URL&quot; style=&quot;border-radius: 5px;&quot;&gt;')" class="highlight">&lt;img&gt; - 画像</li>
-                <li onclick="copyToClipboard('&lt;a href=&quot;URL&quot;&gt;ハイパーリンク&lt;/a&gt;')" class="highlight">&lt;a&gt; - ハイパーリンク</li>
-                <li onclick="copyToClipboard('&lt;ul&gt;&lt;li&gt;リスト項目&lt;/li&gt;&lt;/ul&gt;')" class="highlight">&lt;ul&gt; - 順不同リスト</li>
-                <li onclick="copyToClipboard('&lt;header&gt;ヘッダー&lt;/header&gt;')" class="highlight">&lt;header&gt; - ヘッダー</li>
-                <li onclick="copyToClipboard('&lt;footer&gt;フッター&lt;/footer&gt;')" class="highlight">&lt;footer&gt; - フッター</li>
-                <li onclick="copyToClipboard('&lt;div style=&quot;display: none;&quot;&gt;○○秒後にテキストを非表示&lt;/div&gt;')" class="highlight">&lt;div&gt; - ○○秒後に非表示</li>
-                <li onclick="copyToClipboard('&lt;div style=&quot;display: none;&quot;&gt;○○秒後にテキストを表示&lt;/div&gt;')" class="highlight">&lt;div&gt; - ○○秒後に表示</li>
-                <li onclick="copyToClipboard('&lt;canvas id=&quot;pinballCanvas&quot; width=&quot;400&quot; height=&quot;600&quot;&gt;&lt;/canvas&gt;')" class="highlight">&lt;canvas&gt; - ピンボールゲーム</li>
-                <li onclick="copyToClipboard('&lt;div style=&quot;color: blue;&quot;&gt;青文字&lt;/div&gt;')" class="highlight">&lt;div&gt; - 特定の色</li>
-                <li onclick="copyToClipboard('&lt;div style=&quot;text-align: center;&quot;&gt;中央揃え&lt;/div&gt;')" class="highlight">&lt;div&gt; - 中央揃え</li>
+                <li onclick="copyToClipboard('&lt;h1&gt;タイトル&lt;/h1&gt;')">&lt;h1&gt; - タイトル</li>
+                <li onclick="copyToClipboard('&lt;h2&gt;サブタイトル&lt;/h2&gt;')">&lt;h2&gt; - サブタイトル</li>
+                <li onclick="copyToClipboard('&lt;h3&gt;見出し&lt;/h3&gt;')">&lt;h3&gt; - 見出し</li>
+                <li onclick="copyToClipboard('&lt;b&gt;太文字&lt;/b&gt;')">&lt;b&gt; - 太文字</li>
+                <li onclick="copyToClipboard('&lt;i&gt;斜体&lt;/i&gt;')">&lt;i&gt; - 斜体</li>
+                <li onclick="copyToClipboard('&lt;u&gt;下線&lt;/u&gt;')">&lt;u&gt; - 下線</li>
+                <li onclick="copyToClipboard('&lt;span style=&quot;color: red;&quot;&gt;赤文字&lt;/span&gt;')">&lt;span&gt; - 文字色変更</li>
+                <li onclick="copyToClipboard('&lt;span style=&quot;font-size: 20px;&quot;&gt;大きな文字&lt;/span&gt;')">&lt;span&gt; - 文字サイズ指定</li>
+                <li onclick="copyToClipboard('&lt;div style=&quot;background-color: yellow;&quot;&gt;背景色付き&lt;/div&gt;')">&lt;div&gt; - 背景色付き</li>
+                <li onclick="copyToClipboard('&lt;img src=&quot;画像URL&quot; style=&quot;border-radius: 5px;&quot;&gt;')">&lt;img&gt; - 画像</li>
+                <li onclick="copyToClipboard('&lt;a href=&quot;URL&quot;&gt;ハイパーリンク&lt;/a&gt;')">&lt;a&gt; - ハイパーリンク</li>
+                <li onclick="copyToClipboard('&lt;ul&gt;&lt;li&gt;リスト項目&lt;/li&gt;&lt;/ul&gt;')">&lt;ul&gt; - 順不同リスト</li>
+                <li onclick="copyToClipboard('&lt;header&gt;ヘッダー&lt;/header&gt;')">&lt;header&gt; - ヘッダー</li>
+                <li onclick="copyToClipboard('&lt;footer&gt;フッター&lt;/footer&gt;')">&lt;footer&gt; - フッター</li>
+                <li onclick="copyToClipboard('&lt;div style=&quot;display: none;&quot;&gt;○○秒後にテキストを非表示&lt;/div&gt;')">&lt;div&gt; - ○○秒後に非表示</li>
+                <li onclick="copyToClipboard('&lt;div style=&quot;display: none;&quot;&gt;○○秒後にテキストを表示&lt;/div&gt;')">&lt;div&gt; - ○○秒後に表示</li>
+                <li onclick="copyToClipboard('&lt;html&gt;...&lt;/html&gt; // ホームページのサンプルコード&lt;body&gt; ... &lt;/body&gt;&lt;/html&gt;')">&lt;html&gt; - ホームページのサンプルコード</li>
             </ul>
             <h2>色コード一覧</h2>
             <div class="color-picker">
@@ -164,6 +150,8 @@
         </div>
     </div>
 
+    <div class="image-preview" id="imagePreviewContainer"></div>
+
     <script>
         const htmlInput = document.getElementById('htmlInput');
         const preview = document.getElementById('preview');
@@ -171,165 +159,73 @@
         const downloadBtn = document.getElementById('downloadBtn');
         const htmlTagsBtn = document.getElementById('htmlTagsBtn');
         const htmlTagsMenu = document.getElementById('htmlTagsMenu');
-        const closeHtmlTagsBtn = document.getElementById('closeHtmlTags');
+        const closeHtmlTags = document.getElementById('closeHtmlTags');
+        const deleteBtn = document.getElementById('deleteBtn');
         const imageInput = document.getElementById('imageInput');
-        const imagePreviewContainer = document.createElement('div');
-        imagePreviewContainer.classList.add('image-preview');
-        document.body.appendChild(imagePreviewContainer);
-        const images = [];
+        const addImageBtn = document.getElementById('addImageBtn');
+        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
 
-        // リアルタイムプレビュー
         htmlInput.addEventListener('input', () => {
-            preview.innerHTML = htmlInput.value; 
-        });
-
-        // 画像を追加ボタン
-        document.getElementById('addImageBtn').addEventListener('click', () => {
-            imageInput.click();
-        });
-
-        imageInput.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const imgName = prompt("画像名を入力してください");
-                    const imgElement = `<img src="${e.target.result}" alt="${imgName}" style="max-width:100%; max-height:100%; border-radius: 5px;">`;
-                    const imageContainer = document.createElement('div');
-                    imageContainer.classList.add('image-container');
-                    imageContainer.innerHTML = `
-                        <p>画像名: <input type="text" value="${imgName}" onchange="updateImageName(this)"></p>
-                        ${imgElement}
-                        <button class="delete-button" onclick="deleteImage(this)">削除</button>
-                    `;
-                    images.push({ name: imgName, src: e.target.result }); // Store image info
-                    imagePreviewContainer.appendChild(imageContainer);
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        // 画像名の更新
-        function updateImageName(input) {
-            const container = input.parentElement;
-            const img = container.querySelector('img');
-            if (img) {
-                img.alt = input.value; 
-            }
-        }
-
-        // 画像削除
-        function deleteImage(button) {
-            const container = button.parentElement;
-            imagePreviewContainer.removeChild(container);
-            // Remove the image from the array
-            const imgName = container.querySelector('input').value;
-            const index = images.findIndex(img => img.name === imgName);
-            if (index > -1) {
-                images.splice(index, 1);
-            }
-        }
-
-        // 全て削除ボタン
-        document.getElementById('deleteBtn').addEventListener('click', () => {
-            if (confirm("削除しますか？")) {
-                imagePreviewContainer.innerHTML = '';
-                images.length = 0; // Clear images array
-            }
-        });
-
-        // 再読み込みボタン
-        reloadBtn.addEventListener('click', () => {
             preview.innerHTML = htmlInput.value;
         });
 
-        // ダウンロードボタン
-        downloadBtn.addEventListener('click', () => {
-            const zip = new JSZip();
-            zip.file("index.html", htmlInput.value);
-            images.forEach(image => {
-                zip.file(image.name, image.src.split(',')[1], {base64: true}); // Add image file
-            });
-            zip.generateAsync({type:"blob"})
-                .then(function(content) {
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(content);
-                    link.download = "download.zip";
-                    link.click();
-                });
+        reloadBtn.addEventListener('click', () => {
+            htmlInput.value = '';
+            preview.innerHTML = '';
+            imagePreviewContainer.innerHTML = '';
         });
 
-        // HTMLタグ一覧ボタン
+        downloadBtn.addEventListener('click', () => {
+            const blob = new Blob([htmlInput.value], { type: 'text/html' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'index.html';
+            link.click();
+        });
+
         htmlTagsBtn.addEventListener('click', () => {
             htmlTagsMenu.style.display = 'flex';
         });
 
-        // 閉じるボタン
-        closeHtmlTagsBtn.addEventListener('click', () => {
+        closeHtmlTags.addEventListener('click', () => {
             htmlTagsMenu.style.display = 'none';
         });
 
-        // タグをコピーする関数
-        function copyToClipboard(tag) {
-            navigator.clipboard.writeText(tag).then(() => {
-                alert("コピーしました: " + tag);
-                // Only append for non-color codes
-                if (!tag.includes('color')) {
-                    htmlInput.value += tag; // Paste directly into HTML input
-                    preview.innerHTML = htmlInput.value; // Update preview
-                }
-            });
-        }
-
-        // ペーストボタン
-        document.getElementById('pasteHtmlBtn').addEventListener('click', async () => {
-            try {
-                const text = await navigator.clipboard.readText();
-                htmlInput.value += text; 
-                preview.innerHTML = htmlInput.value; 
-            } catch (err) {
-                alert("ペーストできませんでした: " + err);
+        deleteBtn.addEventListener('click', () => {
+            if (confirm('削除しますか？')) {
+                htmlInput.value = '';
+                preview.innerHTML = '';
+                imagePreviewContainer.innerHTML = '';
             }
         });
 
-        // ピンボールゲームのサンプルコード
-        function setupPinball() {
-            const canvas = document.createElement('canvas');
-            canvas.id = 'pinballCanvas';
-            canvas.width = 400;
-            canvas.height = 600;
-            document.body.appendChild(canvas);
-            const ctx = canvas.getContext('2d');
-            let ballX = 200, ballY = 300, ballRadius = 10;
-            let ballSpeedX = 2, ballSpeedY = -2;
+        addImageBtn.addEventListener('click', () => {
+            imageInput.click();
+        });
 
-            function drawBall() {
-                ctx.beginPath();
-                ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
-                ctx.fillStyle = "black";
-                ctx.fill();
-                ctx.closePath();
+        imageInput.addEventListener('change', (event) => {
+            const files = event.target.files;
+            if (files.length > 0) {
+                const imageUrl = URL.createObjectURL(files[0]);
+                const imgElement = document.createElement('img');
+                imgElement.src = imageUrl;
+                imgElement.style.maxWidth = '100%';
+                imgElement.style.borderRadius = '5px';
+                imgElement.alt = '追加した画像';
+                imagePreviewContainer.innerHTML = ''; // Clear previous image
+                imagePreviewContainer.appendChild(imgElement);
+                preview.innerHTML += `<img src="${imageUrl}" style="max-width: 100%; border-radius: 5px;">`;
             }
+        });
 
-            function update() {
-                ballX += ballSpeedX;
-                ballY += ballSpeedY;
-                if (ballX + ballRadius > canvas.width || ballX - ballRadius < 0) ballSpeedX = -ballSpeedX;
-                if (ballY + ballRadius > canvas.height || ballY - ballRadius < 0) ballSpeedY = -ballSpeedY;
-            }
-
-            function draw() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                drawBall();
-                update();
-                requestAnimationFrame(draw);
-            }
-            draw();
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('コピーしました: ' + text);
+            });
         }
-        setupPinball();
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js"></script>
 </body>
 </html>
+
 
 
