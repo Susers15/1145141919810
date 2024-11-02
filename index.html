@@ -34,7 +34,7 @@
             z-index: 1000;
         }
         .html-tags-menu {
-            background-color: rgba(255, 255, 255, 0.5);
+            background-color: rgba(255, 255, 255, 0.7); /* Opacity set to 70% */
             padding: 20px;
             border-radius: 5px;
             display: none;
@@ -45,21 +45,22 @@
         }
         .html-tags-content {
             padding: 20px;
-            color: white; /* Changed back to white */
+            color: white;
         }
         .close-html-tags {
             float: right;
             border: none;
             background: transparent;
-            color: white; /* Changed to white for visibility */
+            color: white;
             font-size: 20px;
         }
         button {
             margin: 5px;
-            padding: 12px;
+            padding: 15px; /* Increased padding */
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5); /* Added shadow */
         }
         .delete-button {
             background-color: red;
@@ -107,14 +108,14 @@
             left: 0;
         }
         .highlight {
-            border: 2px solid rgba(255, 255, 255, 0.2); /* Light white border */
+            border: 2px solid rgba(255, 255, 255, 0.2);
             padding: 5px;
             margin: 5px 0;
         }
     </style>
 </head>
 <body>
-    <h1>リアルタイムHTMLプレビュー</h1>
+    <h1>プレビュー</h1>
     <textarea id="htmlInput" rows="10" style="width: 100%;"></textarea>
     <input type="file" id="imageInput" accept="image/*" style="display: none;" />
     <button class="normal-button" id="addImageBtn">画像を追加</button>
@@ -150,10 +151,7 @@
                 <li onclick="copyToClipboard('&lt;canvas id=&quot;pinballCanvas&quot; width=&quot;400&quot; height=&quot;600&quot;&gt;&lt;/canvas&gt;')" class="highlight">&lt;canvas&gt; - ピンボールゲーム</li>
                 <li onclick="copyToClipboard('&lt;div style=&quot;color: blue;&quot;&gt;青文字&lt;/div&gt;')" class="highlight">&lt;div&gt; - 特定の色</li>
                 <li onclick="copyToClipboard('&lt;div style=&quot;text-align: center;&quot;&gt;中央揃え&lt;/div&gt;')" class="highlight">&lt;div&gt; - 中央揃え</li>
-                <li onclick="copyToClipboard('&lt;div style=&quot;text-align: right;&quot;&gt;右揃え&lt;/div&gt;')" class="highlight">&lt;div&gt; - 右揃え</li>
             </ul>
-            <h2>ピンボールゲームのサンプルコード</h2>
-            <pre onclick="copyToClipboard('const canvas = document.getElementById(&quot;pinballCanvas&quot;);\nconst ctx = canvas.getContext(&quot;2d&quot;);\nlet ballX = 200, ballY = 300, ballRadius = 10;\nlet ballSpeedX = 2, ballSpeedY = -2;\n\nfunction drawBall() {\n    ctx.beginPath();\n    ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);\n    ctx.fillStyle = &quot;black&quot;;\n    ctx.fill();\n    ctx.closePath();\n}\n\nfunction update() {\n    ballX += ballSpeedX;\n    ballY += ballSpeedY;\n    if (ballX + ballRadius > canvas.width || ballX - ballRadius < 0) ballSpeedX = -ballSpeedX;\n    if (ballY + ballRadius > canvas.height || ballY - ballRadius < 0) ballSpeedY = -ballSpeedY;\n}\n\nfunction draw() {\n    ctx.clearRect(0, 0, canvas.width, canvas.height);\n    drawBall();\n    update();\n    requestAnimationFrame(draw);\n}\ndraw();')">ピンボールサンプル</pre>
             <h2>色コード一覧</h2>
             <div class="color-picker">
                 <div class="color-option" style="background-color: red;" onclick="copyToClipboard('red')"></div>
@@ -232,6 +230,14 @@
             }
         }
 
+        // 全て削除ボタン
+        document.getElementById('deleteBtn').addEventListener('click', () => {
+            if (confirm("削除しますか？")) {
+                imagePreviewContainer.innerHTML = '';
+                images.length = 0; // Clear images array
+            }
+        });
+
         // 再読み込みボタン
         reloadBtn.addEventListener('click', () => {
             preview.innerHTML = htmlInput.value;
@@ -267,8 +273,11 @@
         function copyToClipboard(tag) {
             navigator.clipboard.writeText(tag).then(() => {
                 alert("コピーしました: " + tag);
-                htmlInput.value += tag; // Paste directly into HTML input
-                preview.innerHTML = htmlInput.value; // Update preview
+                // Only append for non-color codes
+                if (!tag.includes('color')) {
+                    htmlInput.value += tag; // Paste directly into HTML input
+                    preview.innerHTML = htmlInput.value; // Update preview
+                }
             });
         }
 
